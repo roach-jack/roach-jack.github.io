@@ -23,6 +23,14 @@ const games = [
         thumbnail: 'images/thumbnails/tic-tac-toe.jpg',
         path: 'apps/tictactoe/',
         featured: true
+    },
+    {
+        id: 'pet-dogs',
+        title: 'Pet My Dogs',
+        description: 'Give Navi and Henley some virtual love! Watch them react to your pets.',
+        thumbnail: 'images/thumbnails/pet-dogs.jpg',
+        path: 'apps/pet-dogs/',
+        featured: true
     }
     // Add more games here
 ];

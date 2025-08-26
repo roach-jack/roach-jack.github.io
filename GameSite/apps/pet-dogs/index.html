@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet My Dogs - Navi & Henley</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .home-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .home-link:hover {
+            background: rgba(0,0,0,0.3);
+        }
+
+        .game-container {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .dogs-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .dog {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+            user-select: none;
+        }
+
+        .dog:hover {
+            transform: scale(1.05);
+        }
+
+        .dog.happy {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        .dog.sleeping {
+            opacity: 0.7;
+            filter: blur(1px);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .dog-body {
+            width: 120px;
+            height: 80px;
+            border-radius: 60px 60px 40px 40px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .navi .dog-body {
+            background: linear-gradient(135deg, #D2B48C 0%, #8B7355 100%);
+        }
+
+        .henley .dog-body {
+            background: linear-gradient(135deg, #2F2F2F 0%, #000000 100%);
+        }
+
+        .dog-head {
+            width: 90px;
+            height: 70px;
+            border-radius: 45px 45px 35px 35px;
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .navi .dog-head {
+            background: linear-gradient(135deg, #D2B48C 0%, #8B7355 100%);
+        }
+
+        .henley .dog-head {
+            background: linear-gradient(135deg, #2F2F2F 0%, #000000 100%);
+        }
+
+        .nose {
+            width: 20px;
+            height: 15px;
+            background: white;
+            border-radius: 10px 10px 15px 15px;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 2px solid #333;
+        }
+
+        .nose::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 6px;
+            background: #333;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .eyes {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+
+        .eye {
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .eye.sleepy {
+            height: 3px;
+            border-radius: 0;
+            background: #333;
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .ears {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 60px;
+        }
+
+        .ear {
+            width: 25px;
+            height: 35px;
+            border-radius: 50% 50% 0 0;
+            transform: rotate(-20deg);
+        }
+
+        .ear:last-child {
+            transform: rotate(20deg);
+        }
+
+        .navi .ear {
+            background: linear-gradient(135deg, #8B7355 0%, #D2B48C 100%);
+        }
+
+        .henley .ear {
+            background: linear-gradient(135deg, #000000 0%, #2F2F2F 100%);
+        }
+
+        .legs {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .leg {
+            width: 15px;
+            height: 25px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .navi .leg {
+            background: #8B7355;
+        }
+
+        .henley .leg {
+            background: #2F2F2F;
+        }
+
+        .tail {
+            position: absolute;
+            right: -20px;
+            top: 20px;
+            width: 30px;
+            height: 8px;
+            background: inherit;
+            border-radius: 4px;
+            transform-origin: left center;
+            animation: wagTail 1s ease-in-out infinite alternate;
+        }
+
+        .dog.happy .tail {
+            animation: wagTailFast 0.3s ease-in-out infinite alternate;
+        }
+
+        @keyframes wagTail {
+            0% { transform: rotate(-10deg); }
+            100% { transform: rotate(10deg); }
+        }
+
+        @keyframes wagTailFast {
+            0% { transform: rotate(-20deg); }
+            100% { transform: rotate(20deg); }
+        }
+
+        .dog-name {
+            margin-top: 3rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .dog-mood {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            color: #666;
+            min-height: 1.5rem;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 2rem 0;
+            background: rgba(255,255,255,0.5);
+            padding: 1.5rem;
+            border-radius: 15px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .hearts {
+            position: absolute;
+            pointer-events: none;
+            font-size: 20px;
+            color: #ff69b4;
+            animation: floatUp 2s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn.secondary {
+            background: #2196F3;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn.secondary:hover {
+            background: #1976D2;
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .mood-indicator {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+        }
+
+        @media (max-width: 600px) {
+            .dogs-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../../index.html" class="home-link">← Back to Games</a>
+    
+    <div class="game-container">
+        <h1>🐕 Pet My Dogs 🐕</h1>
+        <p class="subtitle">Give Navi and Henley some love!</p>
+        
+        <div class="instructions">
+            Click on Navi and Henley to pet them! They love attention and will show their happiness. 
+            Watch their moods and see how much love you can give them! 💕
+        </div>
+
+        <div class="dogs-container">
+            <!-- Navi - Brown pit mix -->
+            <div class="dog navi" id="navi" data-dog="navi">
+                <div class="dog-body">
+                    <div class="dog-head">
+                        <div class="ears">
+                            <div class="ear"></div>
+                            <div class="ear"></div>
+                        </div>
+                        <div class="eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                        <div class="nose"></div>
+                    </div>
+                    <div class="legs">
+                        <div class="leg"></div>
+                        <div class="leg"></div>
+                        <div class="leg"></div>
+                        <div class="leg"></div>
+                    </div>
+                    <div class="tail"></div>
+                </div>
+                <div class="dog-name">Navi</div>
+                <div class="dog-mood" id="navi-mood">Ready for pets! 🐕</div>
+            </div>
+
+            <!-- Henley - Black miniature pinscher -->
+            <div class="dog henley" id="henley" data-dog="henley">
+                <div class="dog-body">
+                    <div class="dog-head">
+                        <div class="ears">
+                            <div class="ear"></div>
+                            <div class="ear"></div>
+                        </div>
+                        <div class="eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                        <div class="nose"></div>
+                    </div>
+                    <div class="legs">
+                        <div class="leg"></div>
+                        <div class="leg"></div>
+                        <div class="leg"></div>
+                        <div class="leg"></div>
+                    </div>
+                    <div class="tail"></div>
+                </div>
+                <div class="dog-name">Henley</div>
+                <div class="dog-mood" id="henley-mood">Waiting for love! 🐕</div>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat">
+                <div class="stat-label">Total Pets Given</div>
+                <div class="stat-value" id="totalPets">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Navi's Love</div>
+                <div class="stat-value" id="naviLove">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Henley's Love</div>
+                <div class="stat-value" id="henleyLove">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Happy Moments</div>
+                <div class="stat-value" id="happyMoments">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="callDogs">Call Dogs! 🦴</button>
+            <button class="btn secondary" id="resetStats">Reset Stats</button>
+        </div>
+    </div>
+
+    <script>
+        class PetDogsGame {
+            constructor() {
+                this.dogs = {
+                    navi: {
+                        element: document.getElementById('navi'),
+                        moodElement: document.getElementById('navi-mood'),
+                        love: 0,
+                        lastPetTime: 0,
+                        sleepTimer: null,
+                        personality: 'energetic' // Pit mix - energetic and loving
+                    },
+                    henley: {
+                        element: document.getElementById('henley'),
+                        moodElement: document.getElementById('henley-mood'),
+                        love: 0,
+                        lastPetTime: 0,
+                        sleepTimer: null,
+                        personality: 'alert' // Min pin - alert and playful
+                    }
+                };
+
+                this.stats = {
+                    totalPets: 0,
+                    happyMoments: 0
+                };
+
+                this.moods = {
+                    navi: [
+                        "Ready for pets! 🐕",
+                        "Loving the attention! 😊",
+                        "So happy! Tail wagging! 🐕‍🦺",
+                        "Best human ever! 💕",
+                        "Pure joy! More pets please! 🥰",
+                        "Sleepy from all the love... 😴"
+                    ],
+                    henley: [
+                        "Waiting for love! 🐕",
+                        "Miniature but mighty happy! 😄",
+                        "Alert and loving it! 👀",
+                        "Small dog, big love! 💖",
+                        "Pinscher power activated! ⚡",
+                        "Dreaming of more pets... 😴"
+                    ]
+                };
+
+                this.initializeElements();
+                this.bindEvents();
+                this.updateDisplay();
+                this.startAutoBehavior();
+            }
+
+            initializeElements() {
+                this.totalPetsElement = document.getElementById('totalPets');
+                this.naviLoveElement = document.getElementById('naviLove');
+                this.henleyLoveElement = document.getElementById('henleyLove');
+                this.happyMomentsElement = document.getElementById('happyMoments');
+                this.callDogsBtn = document.getElementById('callDogs');
+                this.resetStatsBtn = document.getElementById('resetStats');
+            }
+
+            bindEvents() {
+                // Pet the dogs
+                Object.keys(this.dogs).forEach(dogName => {
+                    const dog = this.dogs[dogName];
+                    dog.element.addEventListener('click', (e) => this.petDog(dogName, e));
+                });
+
+                // Control buttons
+                this.callDogsBtn.addEventListener('click', () => this.callDogs());
+                this.resetStatsBtn.addEventListener('click', () => this.resetStats());
+            }
+
+            petDog(dogName, event) {
+                const dog = this.dogs[dogName];
+                const currentTime = Date.now();
+                
+                // Wake up if sleeping
+                if (dog.element.classList.contains('sleeping')) {
+                    this.wakeDog(dogName);
+                    return;
+                }
+
+                // Increase love and stats
+                dog.love += Math.floor(Math.random() * 3) + 1;
+                this.stats.totalPets++;
+                dog.lastPetTime = currentTime;
+
+                // Visual feedback
+                this.showHappyAnimation(dogName, event);
+                this.createHearts(event);
+                this.updateMood(dogName);
+
+                // Special milestone celebrations
+                if (dog.love % 10 === 0) {
+                    this.stats.happyMoments++;
+                    this.celebrateMilestone(dogName);
+                }
+
+                this.updateDisplay();
+                this.resetSleepTimer(dogName);
+            }
+
+            showHappyAnimation(dogName) {
+                const dog = this.dogs[dogName];
+                dog.element.classList.add('happy');
+                
+                setTimeout(() => {
+                    dog.element.classList.remove('happy');
+                }, 600);
+            }
+
+            createHearts(event) {
+                const heartsCount = Math.floor(Math.random() * 3) + 2;
+                
+                for (let i = 0; i < heartsCount; i++) {
+                    setTimeout(() => {
+                        const heart = document.createElement('div');
+                        heart.className = 'hearts';
+                        heart.textContent = ['💖', '💕', '💗', '❤️'][Math.floor(Math.random() * 4)];
+                        
+                        const rect = event.target.getBoundingClientRect();
+                        heart.style.left = (rect.left + Math.random() * rect.width) + 'px';
+                        heart.style.top = (rect.top - 20) + 'px';
+                        
+                        document.body.appendChild(heart);
+                        
+                        setTimeout(() => {
+                            if (heart.parentNode) {
+                                heart.parentNode.removeChild(heart);
+                            }
+                        }, 2000);
+                    }, i * 100);
+                }
+            }
+
+            updateMood(dogName) {
+                const dog = this.dogs[dogName];
+                const loveLevel = Math.min(Math.floor(dog.love / 5), this.moods[dogName].length - 2);
+                dog.moodElement.textContent = this.moods[dogName][loveLevel];
+                
+                // Add mood indicator for high love
+                if (dog.love >= 20) {
+                    this.addMoodIndicator(dogName, '✨');
+                } else if (dog.love >= 10) {
+                    this.addMoodIndicator(dogName, '😊');
+                }
+            }
+
+            addMoodIndicator(dogName, emoji) {
+                const dog = this.dogs[dogName];
+                const existing = dog.element.querySelector('.mood-indicator');
+                if (existing) existing.remove();
+                
+                const indicator = document.createElement('div');
+                indicator.className = 'mood-indicator';
+                indicator.textContent = emoji;
+                dog.element.appendChild(indicator);
+                
+                setTimeout(() => {
+                    if (indicator.parentNode) {
+                        indicator.remove();
+                    }
+                }, 3000);
+            }
+
+            celebrateMilestone(dogName) {
+                const dog = this.dogs[dogName];
+                const messages = [
+                    `${dogName.charAt(0).toUpperCase() + dogName.slice(1)} is overjoyed! 🎉`,
+                    `Love milestone reached! ${dogName.charAt(0).toUpperCase() + dogName.slice(1)} is so happy! 🥳`,
+                    `${dogName.charAt(0).toUpperCase() + dogName.slice(1)} feels incredibly loved! 💕`
+                ];
+                
+                dog.moodElement.textContent = messages[Math.floor(Math.random() * messages.length)];
+                
+                // Special celebration animation
+                dog.element.style.filter = 'brightness(1.2)';
+                setTimeout(() => {
+                    dog.element.style.filter = '';
+                }, 1000);
+            }
+
+            resetSleepTimer(dogName) {
+                const dog = this.dogs[dogName];
+                
+                if (dog.sleepTimer) {
+                    clearTimeout(dog.sleepTimer);
+                }
+                
+                // Dogs get sleepy after 30 seconds without pets
+                dog.sleepTimer = setTimeout(() => {
+                    this.makeDogSleepy(dogName);
+                }, 30000);
+            }
+
+            makeDogSleepy(dogName) {
+                const dog = this.dogs[dogName];
+                dog.element.classList.add('sleeping');
+                dog.moodElement.textContent = this.moods[dogName][this.moods[dogName].length - 1];
+                
+                // Make eyes sleepy
+                const eyes = dog.element.querySelectorAll('.eye');
+                eyes.forEach(eye => eye.classList.add('sleepy'));
+            }
+
+            wakeDog(dogName) {
+                const dog = this.dogs[dogName];
+                dog.element.classList.remove('sleeping');
+                
+                // Wake up eyes
+                const eyes = dog.element.querySelectorAll('.eye');
+                eyes.forEach(eye => eye.classList.remove('sleepy'));
+                
+                this.updateMood(dogName);
+                this.resetSleepTimer(dogName);
+            }
+
+            callDogs() {
+                Object.keys(this.dogs).forEach(dogName => {
+                    this.wakeDog(dogName);
+                    this.showHappyAnimation(dogName);
+                });
+                
+                // Update moods to excited
+                this.dogs.navi.moodElement.textContent = "Coming! Ready for pets! 🏃‍♂️";
+                this.dogs.henley.moodElement.textContent = "Here I am! Pet me! 🏃‍♂️";
+                
+                setTimeout(() => {
+                    Object.keys(this.dogs).forEach(dogName => {
+                        this.updateMood(dogName);
+                    });
+                }, 3000);
+            }
+
+            startAutoBehavior() {
+                // Random tail wags and mood updates
+                setInterval(() => {
+                    Object.keys(this.dogs).forEach(dogName => {
+                        const dog = this.dogs[dogName];
+                        
+                        if (!dog.element.classList.contains('sleeping')) {
+                            // Random personality-based behaviors
+                            if (Math.random() < 0.3) {
+                                if (dog.personality === 'energetic' && Math.random() < 0.5) {
+                                    this.showHappyAnimation(dogName);
+                                } else if (dog.personality === 'alert' && Math.random() < 0.3) {
+                                    dog.moodElement.textContent = "👀 What's that?";
+                                    setTimeout(() => this.updateMood(dogName), 2000);
+                                }
+                            }
+                        }
+                    });
+                }, 10000);
+            }
+
+            resetStats() {
+                this.stats = { totalPets: 0, happyMoments: 0 };
+                Object.keys(this.dogs).forEach(dogName => {
+                    this.dogs[dogName].love = 0;
+                    this.wakeDog(dogName);
+                });
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                this.totalPetsElement.textContent = this.stats.totalPets;
+                this.naviLoveElement.textContent = this.dogs.navi.love;
+                this.henleyLoveElement.textContent = this.dogs.henley.love;
+                this.happyMomentsElement.textContent = this.stats.happyMoments;
+            }
+        }
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PetDogsGame();
+        });
+    </script>
+</body>
+</html>
