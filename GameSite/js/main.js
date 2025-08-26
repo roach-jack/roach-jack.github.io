@@ -5,7 +5,7 @@ const games = [
         title: 'Memory Match',
         description: 'Test your memory with this classic card matching game',
         thumbnail: 'images/thumbnails/memory-game.jpg',
-        path: 'games/memory-game/',
+        path: 'apps/memory-game/',
         featured: true
     },
     {
@@ -13,8 +13,16 @@ const games = [
         title: 'Snake Classic',
         description: 'The classic snake game with a modern twist',
         thumbnail: 'images/thumbnails/snake-game.jpg',
-        path: 'games/snake-game/',
+        path: 'apps/snake-game/',
         featured: false
+    },
+      {
+        id: 'tic-tac-toe',
+        title: 'Tic Tac Toe',
+        description: 'Classic strategy game - play against friends or challenge the AI!',
+        thumbnail: 'images/thumbnails/tic-tac-toe.jpg',
+        path: 'apps/tictactoe/',
+        featured: true
     }
     // Add more games here
 ];
