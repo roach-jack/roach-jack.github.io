@@ -1,0 +1,925 @@
+updateGravityMultiplier() {
+                this.gravityMultiplier = parseFloat(this.gravitySlider.value);
+                document.getElementById('gravityValue').textContent = this.gravityMultiplier.toFixed(1) + 'x';
+            }<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planetary Orbit Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a1a2e;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .home-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            z-index: 1000;
+        }
+
+        .home-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .simulation-canvas {
+            flex: 1;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f23 100%);
+            cursor: crosshair;
+            border: 2px solid #4a9eff;
+        }
+
+        .simulation-canvas.placing {
+            cursor: copy;
+        }
+
+        .simulation-canvas.running {
+            cursor: default;
+        }
+
+        .control-panel {
+            width: 25%;
+            min-width: 400px;
+            background: #2c2c54;
+            padding: 25px;
+            overflow-y: auto;
+            border-left: 2px solid #4a9eff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4a9eff;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 8px;
+            height: 6px;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: #4a9eff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 12px;
+        }
+
+        .btn:hover {
+            background: #3a8eef;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.danger {
+            background: #ff4757;
+        }
+
+        .btn.danger:hover {
+            background: #ef3742;
+        }
+
+        .btn.success {
+            background: #2ed573;
+        }
+
+        .btn.success:hover {
+            background: #1eb861;
+        }
+
+        .value-display {
+            font-size: 1rem;
+            color: #aaa;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .body-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .body-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+
+        .body-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .body-color-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .delete-body {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .instructions {
+            font-size: 1rem;
+            color: #aaa;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .velocity-arrow {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .stats {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .preset-btn {
+            background: #6c5ce7;
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+
+        .preset-btn:hover {
+            background: #5a4fcf;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .control-panel {
+                width: 100%;
+                min-width: auto;
+                height: 40vh;
+                border-left: none;
+                border-top: 2px solid #4a9eff;
+            }
+            
+            .simulation-canvas {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../../index.html" class="home-link">← Back to Games</a>
+    
+    <div class="main-container">
+        <canvas id="simulationCanvas" class="simulation-canvas"></canvas>
+        
+        <div class="control-panel">
+        <div class="control-section">
+            <div class="section-title">🪐 Orbit Simulator</div>
+            <div class="instructions">
+                Click on the canvas to place celestial bodies. Adjust properties below, then hit START to watch them orbit!
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="section-title">Body Properties</div>
+            
+            <div class="control-group">
+                <label>Mass: <span class="value-display" id="massValue">50</span></label>
+                <input type="range" id="massSlider" min="10" max="200" value="50">
+            </div>
+            
+            <div class="control-group">
+                <label>Initial Velocity: <span class="value-display" id="velocityValue">0</span></label>
+                <input type="range" id="velocitySlider" min="0" max="100" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label>Velocity Direction (°): <span class="value-display" id="angleValue">0</span></label>
+                <input type="range" id="angleSlider" min="0" max="359" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label>Gravity Strength: <span class="value-display" id="gravityValue">1.0x</span></label>
+                <input type="range" id="gravitySlider" min="0.1" max="5" step="0.1" value="1.0">
+            </div>
+            
+            <div class="control-group">
+                <label>Color:</label>
+                <input type="color" id="colorPicker" value="#4a9eff">
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="section-title">Presets</div>
+            <div class="preset-buttons">
+                <button class="btn preset-btn" onclick="loadPreset('solar')">Solar System</button>
+                <button class="btn preset-btn" onclick="loadPreset('binary')">Binary Stars</button>
+                <button class="btn preset-btn" onclick="loadPreset('chaos')">Chaos</button>
+                <button class="btn preset-btn" onclick="loadPreset('dance')">Dance</button>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="section-title">Bodies (<span id="bodyCount">0</span>/6)</div>
+            <div class="body-list" id="bodyList"></div>
+            <button class="btn danger" id="clearAllBtn">Clear All</button>
+        </div>
+
+        <div class="control-section">
+            <div class="section-title">Simulation</div>
+            <button class="btn success" id="startBtn">START</button>
+            <button class="btn" id="pauseBtn" disabled>PAUSE</button>
+            <button class="btn" id="resetBtn">RESET</button>
+            
+            <div class="control-group" style="margin-top: 15px;">
+                <label>Speed: <span class="value-display" id="speedValue">1.0x</span></label>
+                <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="trailsCheckbox" checked> Show Trails
+                </label>
+            </div>
+        </div>
+
+        <div class="stats" id="stats">
+            Time: 0s | Bodies: 0
+        </div>
+    </div>
+
+    <script>
+        class PlanetarySimulator {
+            constructor() {
+                this.canvas = document.getElementById('simulationCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Resize canvas to full screen
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                this.bodies = [];
+                this.isRunning = false;
+                this.isPaused = false;
+                this.animationId = null;
+                this.lastTime = 0;
+                this.simulationTime = 0;
+                this.timeScale = 1;
+                this.showTrails = true;
+                this.trails = [];
+                
+                // Physics constants
+                this.G = 50.0; // Base gravitational constant
+                this.gravityMultiplier = 1.0; // User-adjustable multiplier
+                this.maxBodies = 6;
+                
+                // Current body properties
+                this.currentMass = 50;
+                this.currentVelocity = 0;
+                this.currentAngle = 0;
+                this.currentColor = '#4a9eff';
+                
+                this.initializeControls();
+                this.bindEvents();
+                this.render();
+            }
+            
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+            }
+            
+            initializeControls() {
+                this.massSlider = document.getElementById('massSlider');
+                this.velocitySlider = document.getElementById('velocitySlider');
+                this.angleSlider = document.getElementById('angleSlider');
+                this.colorPicker = document.getElementById('colorPicker');
+                this.speedSlider = document.getElementById('speedSlider');
+                this.trailsCheckbox = document.getElementById('trailsCheckbox');
+                this.gravitySlider = document.getElementById('gravitySlider');
+                
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.clearAllBtn = document.getElementById('clearAllBtn');
+                
+                this.bodyCountElement = document.getElementById('bodyCount');
+                this.bodyListElement = document.getElementById('bodyList');
+                this.statsElement = document.getElementById('stats');
+                
+                // Update displays
+                this.updateValueDisplays();
+            }
+            
+            bindEvents() {
+                // Canvas click to place bodies
+                this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+                
+                // Control updates
+                this.massSlider.addEventListener('input', () => this.updateCurrentMass());
+                this.velocitySlider.addEventListener('input', () => this.updateCurrentVelocity());
+                this.angleSlider.addEventListener('input', () => this.updateCurrentAngle());
+                this.colorPicker.addEventListener('input', () => this.updateCurrentColor());
+                this.speedSlider.addEventListener('input', () => this.updateTimeScale());
+                this.trailsCheckbox.addEventListener('change', () => this.toggleTrails());
+                this.gravitySlider.addEventListener('input', () => this.updateGravityMultiplier());
+                
+                // Simulation controls
+                this.startBtn.addEventListener('click', () => this.startSimulation());
+                this.pauseBtn.addEventListener('click', () => this.pauseSimulation());
+                this.resetBtn.addEventListener('click', () => this.resetSimulation());
+                this.clearAllBtn.addEventListener('click', () => this.clearAllBodies());
+            }
+            
+            handleCanvasClick(e) {
+                if (this.isRunning || this.bodies.length >= this.maxBodies) return;
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                this.addBody(x, y);
+            }
+            
+            addBody(x, y) {
+                const radius = Math.sqrt(this.currentMass) * 0.8 + 5;
+                
+                const body = {
+                    id: Date.now(),
+                    x: x,
+                    y: y,
+                    vx: this.currentVelocity * Math.cos(this.currentAngle * Math.PI / 180) * 0.5,
+                    vy: this.currentVelocity * Math.sin(this.currentAngle * Math.PI / 180) * 0.5,
+                    mass: this.currentMass,
+                    radius: radius,
+                    color: this.currentColor,
+                    trail: [],
+                    initialVelocity: this.currentVelocity,
+                    initialAngle: this.currentAngle
+                };
+                
+                this.bodies.push(body);
+                this.updateBodyList();
+                this.updateStats();
+                this.render(); // Immediately render to show the new body
+            }
+            
+            deleteBody(id) {
+                this.bodies = this.bodies.filter(body => body.id !== id);
+                this.updateBodyList();
+                this.updateStats();
+                this.render(); // Immediately update display
+            }
+            
+            clearAllBodies() {
+                this.bodies = [];
+                this.trails = [];
+                this.updateBodyList();
+                this.updateStats();
+                this.render(); // Immediately update display
+            }
+            
+            updateCurrentMass() {
+                this.currentMass = parseFloat(this.massSlider.value);
+                document.getElementById('massValue').textContent = this.currentMass;
+            }
+            
+            updateCurrentVelocity() {
+                this.currentVelocity = parseFloat(this.velocitySlider.value);
+                document.getElementById('velocityValue').textContent = this.currentVelocity;
+            }
+            
+            updateCurrentAngle() {
+                this.currentAngle = parseFloat(this.angleSlider.value);
+                document.getElementById('angleValue').textContent = this.currentAngle + '°';
+            }
+            
+            updateCurrentColor() {
+                this.currentColor = this.colorPicker.value;
+            }
+            
+            updateTimeScale() {
+                this.timeScale = parseFloat(this.speedSlider.value);
+                document.getElementById('speedValue').textContent = this.timeScale.toFixed(1) + 'x';
+            }
+            
+            updateGravityMultiplier() {
+                this.gravityMultiplier = parseFloat(this.gravitySlider.value);
+                document.getElementById('gravityValue').textContent = this.gravityMultiplier.toFixed(1) + 'x';
+            }
+            
+            toggleTrails() {
+                this.showTrails = this.trailsCheckbox.checked;
+                if (!this.showTrails) {
+                    this.bodies.forEach(body => body.trail = []);
+                    this.trails = [];
+                }
+            }
+            
+            updateValueDisplays() {
+                this.updateCurrentMass();
+                this.updateCurrentVelocity();
+                this.updateCurrentAngle();
+                this.updateCurrentColor();
+                this.updateTimeScale();
+                this.updateGravityMultiplier();
+            }
+            
+            updateBodyList() {
+                this.bodyCountElement.textContent = this.bodies.length;
+                
+                this.bodyListElement.innerHTML = '';
+                this.bodies.forEach(body => {
+                    const item = document.createElement('div');
+                    item.className = 'body-item';
+                    item.innerHTML = `
+                        <div class="body-info">
+                            <div class="body-color-indicator" style="background-color: ${body.color}"></div>
+                            <span>Mass: ${body.mass}</span>
+                        </div>
+                        <button class="delete-body" onclick="simulator.deleteBody(${body.id})">×</button>
+                    `;
+                    this.bodyListElement.appendChild(item);
+                });
+            }
+            
+            startSimulation() {
+                if (this.bodies.length < 2) {
+                    alert('Add at least 2 bodies to start the simulation!');
+                    return;
+                }
+                
+                this.isRunning = true;
+                this.isPaused = false;
+                this.canvas.className = 'simulation-canvas running';
+                
+                this.startBtn.disabled = true;
+                this.pauseBtn.disabled = false;
+                
+                this.lastTime = performance.now();
+                this.animate();
+            }
+            
+            pauseSimulation() {
+                this.isPaused = !this.isPaused;
+                this.pauseBtn.textContent = this.isPaused ? 'RESUME' : 'PAUSE';
+                
+                if (!this.isPaused) {
+                    this.lastTime = performance.now();
+                    this.animate();
+                }
+            }
+            
+            resetSimulation() {
+                this.isRunning = false;
+                this.isPaused = false;
+                this.simulationTime = 0;
+                
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                
+                this.canvas.className = 'simulation-canvas';
+                this.startBtn.disabled = false;
+                this.pauseBtn.disabled = true;
+                this.pauseBtn.textContent = 'PAUSE';
+                
+                // Reset body positions and clear trails
+                this.bodies.forEach(body => body.trail = []);
+                this.trails = [];
+                
+                this.updateStats();
+                this.render();
+            }
+            
+            animate(currentTime = 0) {
+                if (!this.isRunning || this.isPaused) return;
+                
+                const deltaTime = (currentTime - this.lastTime) * 0.001 * this.timeScale; // Convert to seconds
+                this.lastTime = currentTime;
+                
+                // Skip first frame to avoid large delta
+                if (deltaTime > 0 && deltaTime < 0.1) {
+                    this.updatePhysics(deltaTime);
+                    this.simulationTime += deltaTime;
+                }
+                
+                this.render();
+                this.updateStats();
+                
+                this.animationId = requestAnimationFrame((time) => this.animate(time));
+            }
+            
+            updatePhysics(deltaTime) {
+                // Initialize acceleration arrays for all bodies
+                const accelerations = this.bodies.map(() => ({ ax: 0, ay: 0 }));
+                
+                // Calculate gravitational accelerations between all pairs of bodies
+                for (let i = 0; i < this.bodies.length; i++) {
+                    for (let j = 0; j < this.bodies.length; j++) {
+                        if (i === j) continue;
+                        
+                        const bodyA = this.bodies[i];
+                        const bodyB = this.bodies[j];
+                        
+                        const dx = bodyB.x - bodyA.x;
+                        const dy = bodyB.y - bodyA.y;
+                        const distanceSquared = dx * dx + dy * dy;
+                        const distance = Math.sqrt(distanceSquared);
+                        
+                        // Prevent extreme forces when bodies get too close
+                        const minDistance = Math.max(bodyA.radius + bodyB.radius, 10);
+                        if (distance < minDistance) continue;
+                        
+                        // Calculate gravitational acceleration: a = G * m / r^2
+                        const accelerationMagnitude = (this.G * this.gravityMultiplier * bodyB.mass) / distanceSquared;
+                        
+                        // Calculate acceleration components (direction from A to B)
+                        const accelerationX = accelerationMagnitude * (dx / distance);
+                        const accelerationY = accelerationMagnitude * (dy / distance);
+                        
+                        // Add to bodyA's total acceleration
+                        accelerations[i].ax += accelerationX;
+                        accelerations[i].ay += accelerationY;
+                    }
+                }
+                
+                // Update velocities and positions using calculated accelerations
+                for (let i = 0; i < this.bodies.length; i++) {
+                    const body = this.bodies[i];
+                    const acceleration = accelerations[i];
+                    
+                    // Update velocity using acceleration: v = v0 + a*t
+                    body.vx += acceleration.ax * deltaTime;
+                    body.vy += acceleration.ay * deltaTime;
+                    
+                    // Update position using velocity: x = x0 + v*t
+                    body.x += body.vx * deltaTime;
+                    body.y += body.vy * deltaTime;
+                    
+                    // Store trail points
+                    if (this.showTrails) {
+                        body.trail.push({ x: body.x, y: body.y });
+                        if (body.trail.length > 400) { // Longer trails for better orbit visualization
+                            body.trail.shift();
+                        }
+                    }
+                }
+            }
+            
+            render() {
+                // Clear canvas with fade effect for trails
+                if (this.showTrails && this.isRunning) {
+                    this.ctx.fillStyle = 'rgba(26, 26, 46, 0.05)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                } else {
+                    // Clear with full background
+                    this.ctx.fillStyle = '#1a1a2e';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // Add starfield background
+                    this.drawStars();
+                }
+                
+                // Draw trails if running
+                if (this.showTrails && this.isRunning) {
+                    this.drawTrails();
+                }
+                
+                // Draw bodies
+                this.drawBodies();
+                
+                // Draw velocity arrows when not running
+                if (!this.isRunning) {
+                    this.drawVelocityArrows();
+                }
+            }
+            
+            drawStars() {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                for (let i = 0; i < 150; i++) {
+                    const x = (i * 157 + 23) % this.canvas.width;
+                    const y = (i * 113 + 47) % this.canvas.height;
+                    const size = (i % 3) * 0.5 + 0.5; // Varying star sizes
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+            
+            drawTrails() {
+                this.bodies.forEach(body => {
+                    if (body.trail.length < 2) return;
+                    
+                    this.ctx.strokeStyle = body.color;
+                    this.ctx.lineWidth = 1;
+                    this.ctx.globalAlpha = 0.5;
+                    this.ctx.beginPath();
+                    
+                    body.trail.forEach((point, index) => {
+                        if (index === 0) {
+                            this.ctx.moveTo(point.x, point.y);
+                        } else {
+                            this.ctx.lineTo(point.x, point.y);
+                        }
+                    });
+                    
+                    this.ctx.stroke();
+                    this.ctx.globalAlpha = 1;
+                });
+            }
+            
+            drawBodies() {
+                this.bodies.forEach(body => {
+                    // Draw body shadow
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    this.ctx.beginPath();
+                    this.ctx.arc(body.x + 3, body.y + 3, body.radius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Draw body with gradient
+                    const gradient = this.ctx.createRadialGradient(
+                        body.x - body.radius * 0.3, body.y - body.radius * 0.3, 0,
+                        body.x, body.y, body.radius
+                    );
+                    gradient.addColorStop(0, this.lightenColor(body.color, 40));
+                    gradient.addColorStop(1, body.color);
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(body.x, body.y, body.radius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Draw body outline
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.arc(body.x, body.y, body.radius, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                });
+            }
+            
+            drawVelocityArrows() {
+                this.bodies.forEach(body => {
+                    if (body.initialVelocity === 0) return;
+                    
+                    const arrowLength = body.initialVelocity * 3; // Scale for visibility
+                    const angle = body.initialAngle * Math.PI / 180;
+                    
+                    const startX = body.x + body.radius * Math.cos(angle);
+                    const startY = body.y + body.radius * Math.sin(angle);
+                    const endX = startX + arrowLength * Math.cos(angle);
+                    const endY = startY + arrowLength * Math.sin(angle);
+                    
+                    // Draw arrow line
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(startX, startY);
+                    this.ctx.lineTo(endX, endY);
+                    this.ctx.stroke();
+                    
+                    // Draw arrowhead
+                    const arrowheadLength = 12;
+                    const arrowheadAngle = Math.PI / 6; // 30 degrees
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(endX, endY);
+                    this.ctx.lineTo(
+                        endX - arrowheadLength * Math.cos(angle - arrowheadAngle),
+                        endY - arrowheadLength * Math.sin(angle - arrowheadAngle)
+                    );
+                    this.ctx.moveTo(endX, endY);
+                    this.ctx.lineTo(
+                        endX - arrowheadLength * Math.cos(angle + arrowheadAngle),
+                        endY - arrowheadLength * Math.sin(angle + arrowheadAngle)
+                    );
+                    this.ctx.stroke();
+                });
+            }
+            
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace("#", ""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+            }
+            
+            updateStats() {
+                const time = Math.round(this.simulationTime);
+                this.statsElement.textContent = `Time: ${time}s | Bodies: ${this.bodies.length}`;
+            }
+        }
+        
+        // Preset configurations
+        function loadPreset(presetName) {
+            simulator.clearAllBodies();
+            
+            const presets = {
+                solar: () => {
+                    const centerX = simulator.canvas.width / 2;
+                    const centerY = simulator.canvas.height / 2;
+                    
+                    // Large central star (stationary)
+                    simulator.currentMass = 200;
+                    simulator.currentVelocity = 0;
+                    simulator.currentAngle = 0;
+                    simulator.currentColor = '#ffeb3b';
+                    simulator.addBody(centerX, centerY);
+                    
+                    // Inner planet with orbital velocity
+                    simulator.currentMass = 15;
+                    simulator.currentVelocity = 8;
+                    simulator.currentAngle = 270; // Upward initial velocity
+                    simulator.currentColor = '#ff5722';
+                    simulator.addBody(centerX + 100, centerY);
+                    
+                    // Outer planet with slower orbital velocity
+                    simulator.currentMass = 20;
+                    simulator.currentVelocity = 6;
+                    simulator.currentAngle = 270;
+                    simulator.currentColor = '#2196f3';
+                    simulator.addBody(centerX + 180, centerY);
+                },
+                binary: () => {
+                    const centerX = simulator.canvas.width / 2;
+                    const centerY = simulator.canvas.height / 2;
+                    
+                    // First star
+                    simulator.currentMass = 80;
+                    simulator.currentVelocity = 3;
+                    simulator.currentAngle = 90; // Downward
+                    simulator.currentColor = '#ff9800';
+                    simulator.addBody(centerX - 80, centerY);
+                    
+                    // Second star
+                    simulator.currentMass = 80;
+                    simulator.currentVelocity = 3;
+                    simulator.currentAngle = 270; // Upward
+                    simulator.currentColor = '#e91e63';
+                    simulator.addBody(centerX + 80, centerY);
+                },
+                chaos: () => {
+                    const centerX = simulator.canvas.width / 2;
+                    const centerY = simulator.canvas.height / 2;
+                    const colors = ['#f44336', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50', '#ffeb3b'];
+                    
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 5) * Math.PI * 2;
+                        const radius = 100;
+                        const x = centerX + Math.cos(angle) * radius;
+                        const y = centerY + Math.sin(angle) * radius;
+                        
+                        simulator.currentMass = 25 + Math.random() * 25;
+                        simulator.currentVelocity = 30 + Math.random() * 20;
+                        simulator.currentAngle = Math.random() * 360;
+                        simulator.currentColor = colors[i];
+                        simulator.addBody(x, y);
+                    }
+                },
+                dance: () => {
+                    const centerX = simulator.canvas.width / 2;
+                    const centerY = simulator.canvas.height / 2;
+                    
+                    // Four bodies in a square formation
+                    const positions = [
+                        { x: -80, y: -80, vx: 25, vy: 25 },
+                        { x: 80, y: -80, vx: -25, vy: 25 },
+                        { x: 80, y: 80, vx: -25, vy: -25 },
+                        { x: -80, y: 80, vx: 25, vy: -25 }
+                    ];
+                    const colors = ['#ff4081', '#40ff8a', '#4081ff', '#ff8140'];
+                    
+                    positions.forEach((pos, i) => {
+                        simulator.currentMass = 40;
+                        simulator.currentVelocity = Math.sqrt(pos.vx * pos.vx + pos.vy * pos.vy);
+                        simulator.currentAngle = Math.atan2(pos.vy, pos.vx) * 180 / Math.PI;
+                        simulator.currentColor = colors[i];
+                        simulator.addBody(centerX + pos.x, centerY + pos.y);
+                    });
+                }
+            };
+            
+            if (presets[presetName]) {
+                presets[presetName]();
+                simulator.updateBodyList();
+                simulator.updateStats();
+                simulator.render();
+            }
+        }
+        
+        // Initialize simulator
+        let simulator;
+        document.addEventListener('DOMContentLoaded', () => {
+            simulator = new PlanetarySimulator();
+        });
+    </script>
+</body>
+</html>

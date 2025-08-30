@@ -31,6 +31,14 @@ const games = [
         thumbnail: 'images/thumbnails/pet-dogs.jpg',
         path: 'apps/pet-dogs/',
         featured: true
+    },
+    {
+        id: 'orbit-simulator',
+        title: 'Planetary Orbit Simulator',
+        description: 'Create your own solar system! Place up to 6 celestial bodies and watch realistic gravitational physics in action.',
+        thumbnail: 'images/thumbnails/orbit-simulator.jpg',
+        path: 'apps/orbit-simulator/',
+        featured: true
     }
     // Add more games here
 ];
