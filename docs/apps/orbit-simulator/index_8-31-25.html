@@ -1,4 +1,7 @@
-  <!DOCTYPE html>
+updateGravityMultiplier() {
+                this.gravityMultiplier = parseFloat(this.gravitySlider.value);
+                document.getElementById('gravityValue').textContent = this.gravityMultiplier.toFixed(1) + 'x';
+            }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -59,30 +62,7 @@
         .simulation-canvas.running {
             cursor: default;
         }
-.button-group {
-            display: flex;
-            gap: 5px;
-            margin-top: 5px;
-        }
 
-        .small-btn {
-            flex: 1;
-            padding: 8px 12px;
-            font-size: 0.9rem;
-            background: #666;
-        }
-
-        .small-btn.active {
-            background: #4a9eff;
-        }
-
-        .small-btn:hover {
-            background: #777;
-        }
-
-        .small-btn.active:hover {
-            background: #3a8eef;
-        }
         .control-panel {
             width: 25%;
             min-width: 400px;
@@ -295,86 +275,78 @@
         <canvas id="simulationCanvas" class="simulation-canvas"></canvas>
         
         <div class="control-panel">
-            <div class="control-section">
-                <div class="section-title">🪐 Orbit Simulator</div>
-                <div class="instructions">
-                    Double-click to add planets, drag edges to resize, drag from center to set velocity. Hold Shift+drag to move planets. Right-click or Delete key to remove!
-                </div>
+        <div class="control-section">
+            <div class="section-title">🪐 Orbit Simulator</div>
+            <div class="instructions">
+                Click on the canvas to place celestial bodies. Adjust properties below, then hit START to watch them orbit!
             </div>
+        </div>
 
-            <div class="control-section">
-                <div class="section-title">Body Properties</div>
-                
-                <div class="control-group">
-                    <label>Mass: <span class="value-display" id="massValue">50</span></label>
-                    <input type="range" id="massSlider" min="10" max="200" value="50">
-                </div>
-                
-                <div class="control-group">
-                    <label>Initial Velocity: <span class="value-display" id="velocityValue">0</span></label>
-                    <input type="range" id="velocitySlider" min="0" max="100" value="0">
-                </div>
-                
-                <div class="control-group">
-                    <label>Velocity Direction (°): <span class="value-display" id="angleValue">0</span></label>
-                    <input type="range" id="angleSlider" min="0" max="359" value="0">
-                </div>
-                
-                <div class="control-group">
-                    <label>Gravity Strength: <span class="value-display" id="gravityValue">1.0x</span></label>
-                    <div class="button-group">
-                        <button class="btn small-btn active" id="gravity1x" onclick="simulator.setGravity(1)">1x</button>
-                        <button class="btn small-btn" id="gravity2x" onclick="simulator.setGravity(2)">2x</button>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <label>Color:</label>
-                    <input type="color" id="colorPicker" value="#4a9eff">
-                </div>
+        <div class="control-section">
+            <div class="section-title">Body Properties</div>
+            
+            <div class="control-group">
+                <label>Mass: <span class="value-display" id="massValue">50</span></label>
+                <input type="range" id="massSlider" min="10" max="200" value="50">
             </div>
+            
+            <div class="control-group">
+                <label>Initial Velocity: <span class="value-display" id="velocityValue">0</span></label>
+                <input type="range" id="velocitySlider" min="0" max="100" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label>Velocity Direction (°): <span class="value-display" id="angleValue">0</span></label>
+                <input type="range" id="angleSlider" min="0" max="359" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label>Gravity Strength: <span class="value-display" id="gravityValue">1.0x</span></label>
+                <input type="range" id="gravitySlider" min="0.1" max="5" step="0.1" value="1.0">
+            </div>
+            
+            <div class="control-group">
+                <label>Color:</label>
+                <input type="color" id="colorPicker" value="#4a9eff">
+            </div>
+        </div>
 
-            <div class="control-section">
-                <div class="section-title">Presets</div>
-                <div class="preset-buttons">
-                    <button class="btn preset-btn" onclick="loadPreset('solar')">Solar System</button>
-                    <button class="btn preset-btn" onclick="loadPreset('binary')">Binary Stars</button>
-                    <button class="btn preset-btn" onclick="loadPreset('chaos')">Chaos</button>
-                    <button class="btn preset-btn" onclick="loadPreset('dance')">Dance</button>
-                </div>
+        <div class="control-section">
+            <div class="section-title">Presets</div>
+            <div class="preset-buttons">
+                <button class="btn preset-btn" onclick="loadPreset('solar')">Solar System</button>
+                <button class="btn preset-btn" onclick="loadPreset('binary')">Binary Stars</button>
+                <button class="btn preset-btn" onclick="loadPreset('chaos')">Chaos</button>
+                <button class="btn preset-btn" onclick="loadPreset('dance')">Dance</button>
             </div>
+        </div>
 
-            <div class="control-section">
-                <div class="section-title">Bodies (<span id="bodyCount">0</span>/6)</div>
-                <div class="body-list" id="bodyList"></div>
-                <button class="btn danger" id="clearAllBtn">Clear All</button>
-            </div>
+        <div class="control-section">
+            <div class="section-title">Bodies (<span id="bodyCount">0</span>/6)</div>
+            <div class="body-list" id="bodyList"></div>
+            <button class="btn danger" id="clearAllBtn">Clear All</button>
+        </div>
 
-            <div class="control-section">
-                <div class="section-title">Simulation</div>
-                <button class="btn success" id="startBtn">START</button>
-                <button class="btn" id="pauseBtn" disabled>PAUSE</button>
-                <button class="btn" id="resetBtn">RESET</button>
-                
-                <div class="control-group" style="margin-top: 15px;">
-                    <label>Speed: <span class="value-display" id="speedValue">1.0x</span></label>
-                    <div class="button-group">
-                        <button class="btn small-btn" id="speed05x" onclick="simulator.setSpeed(0.5)">0.5x</button>
-                        <button class="btn small-btn active" id="speed1x" onclick="simulator.setSpeed(1)">1x</button>
-                        <button class="btn small-btn" id="speed2x" onclick="simulator.setSpeed(2)">2x</button>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <label>
-                        <input type="checkbox" id="trailsCheckbox" checked> Show Trails
-                    </label>
-                </div>
+        <div class="control-section">
+            <div class="section-title">Simulation</div>
+            <button class="btn success" id="startBtn">START</button>
+            <button class="btn" id="pauseBtn" disabled>PAUSE</button>
+            <button class="btn" id="resetBtn">RESET</button>
+            
+            <div class="control-group" style="margin-top: 15px;">
+                <label>Speed: <span class="value-display" id="speedValue">1.0x</span></label>
+                <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
             </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="trailsCheckbox" checked> Show Trails
+                </label>
+            </div>
+        </div>
 
-            <div class="stats" id="stats">
-                Time: 0s | Bodies: 0
-            </div>
+        <div class="stats" id="stats">
+            Time: 0s | Bodies: 0
         </div>
     </div>
 
@@ -384,7 +356,7 @@
                 this.canvas = document.getElementById('simulationCanvas');
                 this.ctx = this.canvas.getContext('2d');
                 
-                // Resize canvas to container
+                // Resize canvas to full screen
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
                 
@@ -398,32 +370,10 @@
                 this.showTrails = true;
                 this.trails = [];
                 
-                // Interaction state
-                this.isDragging = false;
-                this.dragType = null; // 'velocity', 'resize', null
-                this.dragBody = null;
-                this.dragStartPos = { x: 0, y: 0 };
-                this.mousePos = { x: 0, y: 0 };
-                
-                // Available colors for cycling
-                this.availableColors = [
-                    '#4a9eff', '#ff4757', '#2ed573', '#ffa502', '#ff6348',
-                    '#9c88ff', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3',
-                    '#ff9f43', '#10ac84', '#ee5a6f', '#c44569', '#f8b500'
-                ];
-                
                 // Physics constants
                 this.G = 50.0; // Base gravitational constant
-                this.gravityMultiplier = 3.0; // Default to 300% (3.0x)
+                this.gravityMultiplier = 1.0; // User-adjustable multiplier
                 this.maxBodies = 6;
-                
-                // Time scale
-                this.timeScale = 3.0; // Default to 300% (3.0x)
-                
-                // Interaction state
-                this.lastClickTime = 0;
-                this.doubleClickDelay = 300; // milliseconds
-                this.selectedBody = null;
                 
                 // Current body properties
                 this.currentMass = 50;
@@ -447,7 +397,9 @@
                 this.velocitySlider = document.getElementById('velocitySlider');
                 this.angleSlider = document.getElementById('angleSlider');
                 this.colorPicker = document.getElementById('colorPicker');
+                this.speedSlider = document.getElementById('speedSlider');
                 this.trailsCheckbox = document.getElementById('trailsCheckbox');
+                this.gravitySlider = document.getElementById('gravitySlider');
                 
                 this.startBtn = document.getElementById('startBtn');
                 this.pauseBtn = document.getElementById('pauseBtn');
@@ -463,22 +415,17 @@
             }
             
             bindEvents() {
-                // Canvas interactions
-                this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
-                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-                this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                // Canvas click to place bodies
                 this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-                this.canvas.addEventListener('contextmenu', (e) => this.handleRightClick(e));
-                
-                // Keyboard events
-                document.addEventListener('keydown', (e) => this.handleKeyDown(e));
                 
                 // Control updates
                 this.massSlider.addEventListener('input', () => this.updateCurrentMass());
                 this.velocitySlider.addEventListener('input', () => this.updateCurrentVelocity());
                 this.angleSlider.addEventListener('input', () => this.updateCurrentAngle());
                 this.colorPicker.addEventListener('input', () => this.updateCurrentColor());
+                this.speedSlider.addEventListener('input', () => this.updateTimeScale());
                 this.trailsCheckbox.addEventListener('change', () => this.toggleTrails());
+                this.gravitySlider.addEventListener('input', () => this.updateGravityMultiplier());
                 
                 // Simulation controls
                 this.startBtn.addEventListener('click', () => this.startSimulation());
@@ -487,180 +434,14 @@
                 this.clearAllBtn.addEventListener('click', () => this.clearAllBodies());
             }
             
-            handleMouseDown(e) {
-                if (this.isRunning) return;
-                
-                const rect = this.canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                
-                this.mousePos = { x: mouseX, y: mouseY };
-                this.dragStartPos = { x: mouseX, y: mouseY };
-                
-                // Check if clicking on a body
-                const clickedBody = this.getBodyAtPosition(mouseX, mouseY);
-                
-                if (clickedBody) {
-                    const distanceFromCenter = Math.sqrt(
-                        (mouseX - clickedBody.x) ** 2 + (mouseY - clickedBody.y) ** 2
-                    );
-                    
-                    // If clicking near the edge, start resize
-                    if (distanceFromCenter > clickedBody.radius - 10) {
-                        this.isDragging = true;
-                        this.dragType = 'resize';
-                        this.dragBody = clickedBody;
-                        this.canvas.style.cursor = 'nw-resize';
-                    }
-                    // If clicking center area, start velocity drag
-                    else if (distanceFromCenter < clickedBody.radius * 0.5) {
-                        this.isDragging = true;
-                        this.dragType = 'velocity';
-                        this.dragBody = clickedBody;
-                        this.canvas.style.cursor = 'move';
-                    }
-                }
-            }
-
-            handleRightClick(e) {
-                e.preventDefault();
-                
-                if (this.isRunning) return;
-                
-                const rect = this.canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const clickedBody = this.getBodyAtPosition(x, y);
-                if (clickedBody) {
-                    this.deleteBody(clickedBody.id);
-                }
-            }
-            
-            handleKeyDown(e) {
-                if (e.key === 'Delete' && this.selectedBody && !this.isRunning) {
-                    this.deleteBody(this.selectedBody.id);
-                    this.selectedBody = null;
-                }
-            }  
-            
-            handleMouseMove(e) {
-                const rect = this.canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                
-                this.mousePos = { x: mouseX, y: mouseY };
-                
-                if (this.isDragging && this.dragBody) {
-                    if (this.dragType === 'resize') {
-                        // Calculate new radius based on distance from center
-                        const distance = Math.sqrt(
-                            (mouseX - this.dragBody.x) ** 2 + (mouseY - this.dragBody.y) ** 2
-                        );
-                        this.dragBody.radius = Math.max(10, Math.min(100, distance));
-                        // Update mass based on radius (volume relationship)
-                        this.dragBody.mass = Math.pow(this.dragBody.radius / 0.8 - 5, 2);
-                        this.dragBody.mass = Math.max(10, Math.min(200, this.dragBody.mass));
-                    }
-                    else if (this.dragType === 'velocity') {
-                        // Calculate velocity vector from drag
-                        const dx = this.dragStartPos.x - mouseX;
-                        const dy = this.dragStartPos.y - mouseY;
-                        const magnitude = Math.sqrt(dx * dx + dy * dy);
-                        
-                        this.dragBody.vx = dx * 0.02;
-                        this.dragBody.vy = dy * 0.02;
-                        
-                        // Update stored velocity info for arrow display
-                        this.dragBody.initialVelocity = magnitude * 0.1;
-                        this.dragBody.initialAngle = Math.atan2(dy, dx) * 180 / Math.PI;
-                    }
-                    
-                    this.updateBodyList();
-                    this.render();
-                } else {
-                    // Update cursor based on hover position
-                    this.updateCursor(mouseX, mouseY);
-                }
-            }
-            
-            handleMouseUp(e) {
-                this.isDragging = false;
-                this.dragType = null;
-                this.dragBody = null;
-                this.canvas.style.cursor = 'crosshair';
-            }
-            
-            updateCursor(mouseX, mouseY) {
-                if (this.isRunning) {
-                    this.canvas.style.cursor = 'default';
-                    return;
-                }
-                
-                const hoveredBody = this.getBodyAtPosition(mouseX, mouseY);
-                
-                if (hoveredBody) {
-                    const distanceFromCenter = Math.sqrt(
-                        (mouseX - hoveredBody.x) ** 2 + (mouseY - hoveredBody.y) ** 2
-                    );
-                    
-                    if (distanceFromCenter > hoveredBody.radius - 10) {
-                        this.canvas.style.cursor = 'nw-resize';
-                    } else if (distanceFromCenter < hoveredBody.radius * 0.5) {
-                        this.canvas.style.cursor = 'move';
-                    } else {
-                        this.canvas.style.cursor = 'pointer';
-                    }
-                } else {
-                    this.canvas.style.cursor = 'crosshair';
-                }
-            }
-            
-            getBodyAtPosition(x, y) {
-                // Check bodies in reverse order (last added first, so they appear on top)
-                for (let i = this.bodies.length - 1; i >= 0; i--) {
-                    const body = this.bodies[i];
-                    const distance = Math.sqrt((x - body.x) ** 2 + (y - body.y) ** 2);
-                    if (distance <= body.radius) {
-                        return body;
-                    }
-                }
-                return null;
-            }
-            
             handleCanvasClick(e) {
-                if (this.isRunning) return;
+                if (this.isRunning || this.bodies.length >= this.maxBodies) return;
                 
-                const currentTime = Date.now();
                 const rect = this.canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 
-                const clickedBody = this.getBodyAtPosition(x, y);
-                
-                if (clickedBody) {
-                    // Select/deselect body
-                    this.selectedBody = this.selectedBody === clickedBody ? null : clickedBody;
-                    
-                    // Check for double click to change color
-                    if (currentTime - this.lastClickTime < this.doubleClickDelay) {
-                        // Cycle through colors on double click
-                        const currentIndex = this.availableColors.indexOf(clickedBody.color);
-                        const nextIndex = (currentIndex + 1) % this.availableColors.length;
-                        clickedBody.color = this.availableColors[nextIndex];
-                        this.updateBodyList();
-                    }
-                    
-                    this.render();
-                } else if (this.bodies.length < this.maxBodies) {
-                    // Check for double click to add new body
-                    if (currentTime - this.lastClickTime < this.doubleClickDelay) {
-                        this.addBody(x, y);
-                        this.selectedBody = null; // Clear selection when adding new body
-                    }
-                }
-                
-                this.lastClickTime = currentTime;
+                this.addBody(x, y);
             }
             
             addBody(x, y) {
@@ -670,16 +451,10 @@
                     id: Date.now(),
                     x: x,
                     y: y,
-                    initialX: x, // Store initial position
-                    initialY: y,
                     vx: this.currentVelocity * Math.cos(this.currentAngle * Math.PI / 180) * 0.5,
                     vy: this.currentVelocity * Math.sin(this.currentAngle * Math.PI / 180) * 0.5,
-                    initialVx: this.currentVelocity * Math.cos(this.currentAngle * Math.PI / 180) * 0.5, // Store initial velocity
-                    initialVy: this.currentVelocity * Math.sin(this.currentAngle * Math.PI / 180) * 0.5,
                     mass: this.currentMass,
-                    initialMass: this.currentMass, // Store initial mass
                     radius: radius,
-                    initialRadius: radius, // Store initial radius
                     color: this.currentColor,
                     trail: [],
                     initialVelocity: this.currentVelocity,
@@ -726,29 +501,14 @@
                 this.currentColor = this.colorPicker.value;
             }
             
-            setGravity(multiplier) {
-                this.gravityMultiplier = multiplier * 3.0; // 1x = 3.0, 2x = 6.0
-                document.getElementById('gravityValue').textContent = multiplier + '.0x';
-                
-                // Update button states
-                document.querySelectorAll('.button-group button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                document.getElementById(`gravity${multiplier}x`).classList.add('active');
+            updateTimeScale() {
+                this.timeScale = parseFloat(this.speedSlider.value);
+                document.getElementById('speedValue').textContent = this.timeScale.toFixed(1) + 'x';
             }
             
-            setSpeed(multiplier) {
-                this.timeScale = multiplier * 3.0; // 0.5x = 1.5, 1x = 3.0, 2x = 6.0
-                document.getElementById('speedValue').textContent = multiplier + '.0x';
-                
-                // Update button states
-                document.querySelectorAll('#speed05x, #speed1x, #speed2x').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                if (multiplier === 0.5) document.getElementById('speed05x').classList.add('active');
-                else if (multiplier === 1) document.getElementById('speed1x').classList.add('active');
-                else if (multiplier === 2) document.getElementById('speed2x').classList.add('active');
+            updateGravityMultiplier() {
+                this.gravityMultiplier = parseFloat(this.gravitySlider.value);
+                document.getElementById('gravityValue').textContent = this.gravityMultiplier.toFixed(1) + 'x';
             }
             
             toggleTrails() {
@@ -764,10 +524,8 @@
                 this.updateCurrentVelocity();
                 this.updateCurrentAngle();
                 this.updateCurrentColor();
-                
-                // Set initial button states and values
-                this.setGravity(1); // Default to 1x (which is 300%)
-                this.setSpeed(1);   // Default to 1x (which is 300%)
+                this.updateTimeScale();
+                this.updateGravityMultiplier();
             }
             
             updateBodyList() {
@@ -780,7 +538,7 @@
                     item.innerHTML = `
                         <div class="body-info">
                             <div class="body-color-indicator" style="background-color: ${body.color}"></div>
-                            <span>Mass: ${Math.round(body.mass)}</span>
+                            <span>Mass: ${body.mass}</span>
                         </div>
                         <button class="delete-body" onclick="simulator.deleteBody(${body.id})">×</button>
                     `;
@@ -829,21 +587,11 @@
                 this.pauseBtn.disabled = true;
                 this.pauseBtn.textContent = 'PAUSE';
                 
-                // Reset all bodies to their initial state (preserve current size and mass)
-                this.bodies.forEach(body => {
-                    body.x = body.initialX;
-                    body.y = body.initialY;
-                    body.vx = body.initialVx;
-                    body.vy = body.initialVy;
-                    // Keep current radius and mass (don't reset to initial)
-                    body.trail = [];
-                });
-                
+                // Reset body positions and clear trails
+                this.bodies.forEach(body => body.trail = []);
                 this.trails = [];
-                this.selectedBody = null;
                 
                 this.updateStats();
-                this.updateBodyList();
                 this.render();
             }
             
@@ -1011,69 +759,20 @@
                     this.ctx.beginPath();
                     this.ctx.arc(body.x, body.y, body.radius, 0, Math.PI * 2);
                     this.ctx.stroke();
-                    
-                    // Draw selection outline for selected body
-                    if (this.selectedBody === body && !this.isRunning) {
-                        this.ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
-                        this.ctx.lineWidth = 3;
-                        this.ctx.setLineDash([5, 5]);
-                        this.ctx.beginPath();
-                        this.ctx.arc(body.x, body.y, body.radius + 5, 0, Math.PI * 2);
-                        this.ctx.stroke();
-                        this.ctx.setLineDash([]);
-                    }
-                    
-                    // Draw resize handles when hovering or dragging
-                    if (!this.isRunning) {
-                        const hoveredBody = this.getBodyAtPosition(this.mousePos.x, this.mousePos.y);
-                        if ((hoveredBody === body) || (this.dragType === 'resize' && this.dragBody === body)) {
-                            // Draw resize handle
-                            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-                            this.ctx.lineWidth = 2;
-                            this.ctx.setLineDash([3, 3]);
-                            this.ctx.beginPath();
-                            this.ctx.arc(body.x, body.y, body.radius, 0, Math.PI * 2);
-                            this.ctx.stroke();
-                            this.ctx.setLineDash([]);
-                            
-                            // Draw resize indicators
-                            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                            const handleSize = 4;
-                            const positions = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
-                            positions.forEach(angle => {
-                                const handleX = body.x + body.radius * Math.cos(angle);
-                                const handleY = body.y + body.radius * Math.sin(angle);
-                                this.ctx.fillRect(handleX - handleSize/2, handleY - handleSize/2, handleSize, handleSize);
-                            });
-                        }
-                    }
                 });
             }
             
             drawVelocityArrows() {
                 this.bodies.forEach(body => {
-                    // Skip if no velocity or if this body is being dragged for velocity
-                    if ((body.initialVelocity === 0 && body.vx === 0 && body.vy === 0) || 
-                        (this.dragType === 'velocity' && this.dragBody === body)) {
-                        return;
-                    }
+                    if (body.initialVelocity === 0) return;
                     
-                    let arrowLength, angle, startX, startY, endX, endY;
+                    const arrowLength = body.initialVelocity * 3; // Scale for visibility
+                    const angle = body.initialAngle * Math.PI / 180;
                     
-                    if (body.initialVelocity > 0) {
-                        // Use stored initial velocity for display
-                        arrowLength = body.initialVelocity * 3;
-                        angle = body.initialAngle * Math.PI / 180;
-                    } else {
-                        // Use current velocity
-                        arrowLength = Math.sqrt(body.vx * body.vx + body.vy * body.vy) * 100;
-                        angle = Math.atan2(body.vy, body.vx);
-                    }
-                    
-                    startX = body.x + body.radius * Math.cos(angle);
-                    startY = body.y + body.radius * Math.sin(angle);
-                    endX = startX + arrowLength * Math.cos(angle);
-                    endY = startY + arrowLength * Math.sin(angle);
+                    const startX = body.x + body.radius * Math.cos(angle);
+                    const startY = body.y + body.radius * Math.sin(angle);
+                    const endX = startX + arrowLength * Math.cos(angle);
+                    const endY = startY + arrowLength * Math.sin(angle);
                     
                     // Draw arrow line
                     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
@@ -1085,7 +784,7 @@
                     
                     // Draw arrowhead
                     const arrowheadLength = 12;
-                    const arrowheadAngle = Math.PI / 6;
+                    const arrowheadAngle = Math.PI / 6; // 30 degrees
                     
                     this.ctx.beginPath();
                     this.ctx.moveTo(endX, endY);
@@ -1100,49 +799,6 @@
                     );
                     this.ctx.stroke();
                 });
-                
-                // Draw velocity drag arrow if currently dragging
-                if (this.dragType === 'velocity' && this.dragBody) {
-                    const body = this.dragBody;
-                    const dx = this.dragStartPos.x - this.mousePos.x;
-                    const dy = this.dragStartPos.y - this.mousePos.y;
-                    const magnitude = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (magnitude > 5) {
-                        const angle = Math.atan2(dy, dx);
-                        const startX = body.x + body.radius * Math.cos(angle);
-                        const startY = body.y + body.radius * Math.sin(angle);
-                        const endX = startX + magnitude * Math.cos(angle);
-                        const endY = startY + magnitude * Math.sin(angle);
-                        
-                        // Draw drag arrow with different color
-                        this.ctx.strokeStyle = 'rgba(255, 255, 0, 0.9)';
-                        this.ctx.lineWidth = 4;
-                        this.ctx.setLineDash([5, 5]);
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(startX, startY);
-                        this.ctx.lineTo(endX, endY);
-                        this.ctx.stroke();
-                        this.ctx.setLineDash([]);
-                        
-                        // Draw arrowhead
-                        const arrowheadLength = 15;
-                        const arrowheadAngle = Math.PI / 6;
-                        
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(endX, endY);
-                        this.ctx.lineTo(
-                            endX - arrowheadLength * Math.cos(angle - arrowheadAngle),
-                            endY - arrowheadLength * Math.sin(angle - arrowheadAngle)
-                        );
-                        this.ctx.moveTo(endX, endY);
-                        this.ctx.lineTo(
-                            endX - arrowheadLength * Math.cos(angle + arrowheadAngle),
-                            endY - arrowheadLength * Math.sin(angle + arrowheadAngle)
-                        );
-                        this.ctx.stroke();
-                    }
-                }
             }
             
             lightenColor(color, percent) {
@@ -1213,7 +869,7 @@
                 chaos: () => {
                     const centerX = simulator.canvas.width / 2;
                     const centerY = simulator.canvas.height / 2;
-                    const colors = ['#f44336', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50'];
+                    const colors = ['#f44336', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50', '#ffeb3b'];
                     
                     for (let i = 0; i < 5; i++) {
                         const angle = (i / 5) * Math.PI * 2;
