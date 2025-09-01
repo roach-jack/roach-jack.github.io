@@ -1,21 +1,5 @@
 // Game data structure
 const games = [
-    {
-        id: 'memory-game',
-        title: 'Memory Match',
-        description: 'Test your memory with this classic card matching game',
-        thumbnail: 'images/thumbnails/memory-game.jpg',
-        path: 'apps/memory-game/',
-        featured: true
-    },
-    {
-        id: 'snake-game',
-        title: 'Snake Classic',
-        description: 'The classic snake game with a modern twist',
-        thumbnail: 'images/thumbnails/snake-game.jpg',
-        path: 'apps/snake-game/',
-        featured: false
-    },
       {
         id: 'tic-tac-toe',
         title: 'Tic Tac Toe',
@@ -38,6 +22,22 @@ const games = [
         description: 'Create your own solar system! Place up to 6 celestial bodies and watch realistic gravitational physics in action.',
         thumbnail: 'images/thumbnails/orbit-simulator.jpg',
         path: 'apps/orbit-simulator/',
+        featured: true
+    },
+    {
+        id: 'survival-islands',
+        title: 'Island Survival',
+        description: 'Gather resources and adapt to survive this island challenge',
+        thumbnail: 'images/thumbnails/island-survival.jpg',
+        path: 'apps/survival-islands/',
+        featured: true
+    },
+    {
+        id: 'impossible-captcha',
+        title: 'Are you a human?',
+        description: 'Answer a few simple questions to prove you are a human',
+        thumbnail: 'images/thumbnails/impossible-captcha.jpg',
+        path: 'apps/impossible-captcha/',
         featured: true
     }
     // Add more games here

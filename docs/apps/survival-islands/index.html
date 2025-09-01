@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Island Survival - Strategic Colony Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c5aa0 0%, #1a365d 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .game-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .home-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            z-index: 1000;
+        }
+
+        .home-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Game World Canvas */
+        .game-world {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(135deg, #4a90a4 0%, #2c5aa0 100%);
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* UI Panel */
+        .ui-panel {
+            width: 350px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border-left: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ui-section {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ui-section h3 {
+            color: #4a9eff;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Resource Display */
+        .resources {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .resource-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .resource-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .resource-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Population Stats */
+        .population-stats {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Game Controls */
+        .game-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            background: #4a9eff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #3a8eef;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .control-btn.danger {
+            background: #e74c3c;
+        }
+
+        .control-btn.danger:hover {
+            background: #c0392b;
+        }
+
+        .control-btn.success {
+            background: #27ae60;
+        }
+
+        .control-btn.success:hover {
+            background: #229954;
+        }
+
+        /* Building Menu */
+        .building-menu {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .building-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .building-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .building-item.selected {
+            background: rgba(74, 158, 255, 0.3);
+            border: 1px solid #4a9eff;
+        }
+
+        .building-cost {
+            font-size: 0.8rem;
+            color: #f39c12;
+        }
+
+        /* Tech Tree */
+        .tech-tree {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+        }
+
+        .tech-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tech-item.available {
+            background: rgba(46, 204, 113, 0.2);
+            cursor: pointer;
+        }
+
+        .tech-item.available:hover {
+            background: rgba(46, 204, 113, 0.3);
+        }
+
+        .tech-item.researched {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+
+        /* Day/Night Cycle */
+        .day-night-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+        }
+
+        .day-phase {
+            color: #f39c12;
+        }
+
+        .night-phase {
+            color: #3498db;
+        }
+
+        /* Weather Indicator */
+        .weather-indicator {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Event Log */
+        .event-log {
+            max-height: 120px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .log-entry {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .log-entry.warning {
+            color: #f39c12;
+        }
+
+        .log-entry.danger {
+            color: #e74c3c;
+        }
+
+        .log-entry.success {
+            color: #27ae60;
+        }
+
+        /* Progress Bars */
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            transition: width 0.3s ease;
+        }
+
+        /* Island Selection */
+        .island-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .island-btn {
+            flex: 1;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .island-btn.active {
+            background: #4a9eff;
+        }
+
+        .island-btn:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .ui-panel {
+                width: 100%;
+                height: 40vh;
+                border-left: none;
+                border-top: 2px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .game-world {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../../index.html" class="home-link">← Back to Games</a>
+    
+    <div class="game-container">
+        <div class="game-world">
+            <canvas id="gameCanvas"></canvas>
+            
+            <!-- Day/Night Indicator -->
+            <div class="day-night-indicator" id="dayNightIndicator">
+                <span id="phaseText">Day 1 - Planning</span>
+            </div>
+            
+            <!-- Weather Indicator -->
+            <div class="weather-indicator" id="weatherIndicator">
+                ☀️ Clear
+            </div>
+        </div>
+        
+        <div class="ui-panel">
+            <!-- Resources Section -->
+            <div class="ui-section">
+                <h3>📦 Resources</h3>
+                <div class="resources">
+                    <div class="resource-item">
+                        <div class="resource-amount" id="foodAmount">50</div>
+                        <div class="resource-label">🍎 Food</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-amount" id="waterAmount">40</div>
+                        <div class="resource-label">💧 Water</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-amount" id="woodAmount">30</div>
+                        <div class="resource-label">🪵 Wood</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-amount" id="stoneAmount">20</div>
+                        <div class="resource-label">🪨 Stone</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Population Section -->
+            <div class="ui-section">
+                <h3>👥 Population</h3>
+                <div class="population-stats">
+                    <div class="stat-row">
+                        <span>Total People:</span>
+                        <span id="totalPeople">25</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Healthy:</span>
+                        <span id="healthyPeople">25</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Injured:</span>
+                        <span id="injuredPeople">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Huts:</span>
+                        <span id="hutCount">5</span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="moraleBar" style="width: 80%"></div>
+                </div>
+                <div style="font-size: 0.8rem; margin-top: 2px;">Morale: <span id="moraleText">80%</span></div>
+            </div>
+
+            <!-- Island Selection -->
+            <div class="ui-section">
+                <h3>🏝️ Islands</h3>
+                <div class="island-selector">
+                    <button class="island-btn active" id="island1">Starter</button>
+                    <button class="island-btn" id="island2" disabled>Volcanic</button>
+                    <button class="island-btn" id="island3" disabled>Frozen</button>
+                    <button class="island-btn" id="island4" disabled>Jungle</button>
+                </div>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="ui-section">
+                <h3>⏰ Day Cycle</h3>
+                <div class="game-controls">
+                    <button class="control-btn success" id="startDayBtn">Start Day</button>
+                    <button class="control-btn" id="pauseBtn" disabled>Pause</button>
+                    <button class="control-btn" id="speedBtn">Speed: 1x</button>
+                    <button class="control-btn danger" id="endDayBtn" disabled>End Day</button>
+                </div>
+            </div>
+
+            <!-- Building Menu -->
+            <div class="ui-section">
+                <h3>🏗️ Buildings</h3>
+                <div class="building-menu">
+                    <div class="building-item" data-building="hut">
+                        <div>
+                            <div>🏠 Hut</div>
+                            <div class="building-cost">Wood: 10, Stone: 5</div>
+                        </div>
+                        <div>+5 People</div>
+                    </div>
+                    <div class="building-item" data-building="storage">
+                        <div>
+                            <div>📦 Storage</div>
+                            <div class="building-cost">Wood: 15, Stone: 10</div>
+                        </div>
+                        <div>+Storage</div>
+                    </div>
+                    <div class="building-item" data-building="watchtower">
+                        <div>
+                            <div>🗼 Watchtower</div>
+                            <div class="building-cost">Wood: 12, Stone: 18</div>
+                        </div>
+                        <div>+Search Range</div>
+                    </div>
+                    <div class="building-item" data-building="workshop">
+                        <div>
+                            <div>🔨 Workshop</div>
+                            <div class="building-cost">Wood: 25, Stone: 20</div>
+                        </div>
+                        <div>+Efficiency</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tech Tree -->
+            <div class="ui-section">
+                <h3>🔬 Research</h3>
+                <div class="tech-tree">
+                    <div class="tech-item available" data-tech="tools">
+                        <span>🔨 Better Tools</span>
+                        <span style="font-size: 0.8rem;">Wood: 15</span>
+                    </div>
+                    <div class="tech-item" data-tech="medicine">
+                        <span>💊 Medicine</span>
+                        <span style="font-size: 0.8rem;">Need: Tools</span>
+                    </div>
+                    <div class="tech-item" data-tech="boats">
+                        <span>⛵ Boats</span>
+                        <span style="font-size: 0.8rem;">Wood: 25</span>
+                    </div>
+                    <div class="tech-item" data-tech="armor">
+                        <span>🛡️ Armor</span>
+                        <span style="font-size: 0.8rem;">Stone: 30</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Log -->
+            <div class="ui-section">
+                <h3>📜 Events</h3>
+                <div class="event-log" id="eventLog">
+                    <div class="log-entry">Colony established on Starter Island</div>
+                    <div class="log-entry">25 settlers ready to begin survival</div>
+                    <div class="log-entry">Stockpiles prepared for first expedition</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class IslandSurvivalGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Resize canvas
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Game State
+                this.currentDay = 1;
+                this.phase = 'planning'; // 'planning', 'gathering', 'paused'
+                this.currentIsland = 0; // Island index (0-3)
+                this.gameSpeed = 1;
+                
+                // Camera/View
+                this.camera = { x: 0, y: 0 };
+                this.isDragging = false;
+                this.lastMousePos = { x: 0, y: 0 };
+                
+                // Resources
+                this.resources = {
+                    food: 50,
+                    water: 40,
+                    wood: 30,
+                    stone: 20
+                };
+                
+                // Population
+                this.population = {
+                    total: 25,
+                    healthy: 25,
+                    injured: 0,
+                    morale: 80
+                };
+                
+                // Technologies
+                this.technologies = {
+                    tools: false,
+                    medicine: false,
+                    boats: false,
+                    armor: false,
+                    searchRadius: 100  // Base search radius
+                };
+                
+                // Islands Configuration - Much larger islands
+                this.islands = [
+                    {
+                        name: "Peaceful Shores",
+                        size: { width: 100, height: 100 },
+                        difficulty: 1,
+                        terrain: 'grassland',
+                        resources: { food: 1.2, water: 1.0, wood: 0.8, stone: 0.6 },
+                        dangers: { weather: 0.05, animals: 0.02, accidents: 0.08 },
+                        unlocked: true,
+                        color: '#4a7c59'
+                    },
+                    {
+                        name: "Rocky Highlands", 
+                        size: { width: 1400, height: 900 },
+                        difficulty: 2,
+                        terrain: 'mountains',
+                        resources: { food: 0.6, water: 0.7, wood: 0.5, stone: 1.8 },
+                        dangers: { weather: 0.15, animals: 0.08, accidents: 0.12 },
+                        unlocked: false,
+                        color: '#6b5b73'
+                    },
+                    {
+                        name: "Frozen Tundra",
+                        size: { width: 1600, height: 1000 },
+                        difficulty: 3,
+                        terrain: 'frozen',
+                        resources: { food: 0.3, water: 1.2, wood: 0.2, stone: 1.0 },
+                        dangers: { weather: 0.25, animals: 0.15, accidents: 0.18, cold: 0.12 },
+                        unlocked: false,
+                        color: '#7fb8d4'
+                    },
+                    {
+                        name: "Savage Jungle",
+                        size: { width: 1800, height: 1200 },
+                        difficulty: 4,
+                        terrain: 'jungle',
+                        resources: { food: 2.0, water: 1.5, wood: 2.5, stone: 0.4 },
+                        dangers: { weather: 0.20, animals: 0.35, accidents: 0.15, disease: 0.18 },
+                        unlocked: false,
+                        color: '#2d5016'
+                    }
+                ];
+                
+                // Game Objects
+                this.buildings = [];  // Array of building objects with positions
+                this.resourceNodes = [];  // Array of resource nodes with positions
+                this.selectedBuilding = null;
+                this.selectedBuildingType = null;
+                
+                // Weather
+                this.weather = 'clear';
+                this.weatherEffects = {
+                    clear: { gathering: 1.0, danger: 1.0 },
+                    rain: { gathering: 0.8, danger: 1.2 },
+                    storm: { gathering: 0.5, danger: 2.0 },
+                    volcano: { gathering: 0.3, danger: 3.0 }
+                };
+                
+                this.initializeGame();
+                this.bindEvents();
+                this.render();
+            }
+            
+            initializeGame() {
+                // Start with some basic buildings on first island
+                this.buildings.push({
+                    type: 'hut',
+                    x: 300,
+                    y: 200,
+                    island: 0,
+                    id: Date.now()
+                });
+                
+                this.generateResourceNodes();
+                this.updateUI();
+                this.centerCameraOnIsland();
+            }
+            
+            centerCameraOnIsland() {
+                const island = this.islands[this.currentIsland];
+                this.camera.x = -island.size.width / 2 + this.canvas.width / 2;
+                this.camera.y = -island.size.height / 2 + this.canvas.height / 2;
+            }
+            
+            generateResourceNodes() {
+                const island = this.islands[this.currentIsland];
+                this.resourceNodes = [];
+                
+                const resourceTypes = ['food', 'water', 'wood', 'stone'];
+                resourceTypes.forEach(type => {
+                    const abundance = island.resources[type];
+                    const nodeCount = Math.floor(abundance * 15 + Math.random() * 10);
+                    
+                    for (let i = 0; i < nodeCount; i++) {
+                        const node = {
+                            type: type,
+                            x: Math.random() * (island.size.width - 100) + 50,
+                            y: Math.random() * (island.size.height - 100) + 50,
+                            amount: Math.floor(Math.random() * 25) + 10,
+                            maxAmount: Math.floor(Math.random() * 25) + 10,
+                            island: this.currentIsland,
+                            discovered: false,
+                            depleted: false,
+                            id: Date.now() + Math.random()
+                        };
+                        node.maxAmount = node.amount;
+                        this.resourceNodes.push(node);
+                    }
+                });
+            }
+            
+            bindEvents() {
+                // Canvas interactions
+                this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+                this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
+                
+                // Building selection
+                document.querySelectorAll('.building-item').forEach(item => {
+                    item.addEventListener('click', () => this.selectBuildingType(item.dataset.building));
+                });
+                
+                // Tech research
+                document.querySelectorAll('.tech-item.available').forEach(item => {
+                    item.addEventListener('click', () => this.researchTech(item.dataset.tech));
+                });
+                
+                // Game controls
+                document.getElementById('startDayBtn').addEventListener('click', () => this.startGatheringPhase());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
+                document.getElementById('speedBtn').addEventListener('click', () => this.changeSpeed());
+                document.getElementById('endDayBtn').addEventListener('click', () => this.endDay());
+                
+                // Island selection
+                document.querySelectorAll('.island-btn').forEach((btn, index) => {
+                    btn.addEventListener('click', () => this.selectIsland(index));
+                });
+            }
+            
+            handleMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                this.isDragging = true;
+                this.lastMousePos = { x: mouseX, y: mouseY };
+                this.canvas.style.cursor = 'grabbing';
+            }
+            
+            handleMouseMove(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                if (this.isDragging) {
+                    // Pan camera
+                    const deltaX = mouseX - this.lastMousePos.x;
+                    const deltaY = mouseY - this.lastMousePos.y;
+                    
+                    this.camera.x += deltaX;
+                    this.camera.y += deltaY;
+                    
+                    this.lastMousePos = { x: mouseX, y: mouseY };
+                    this.render();
+                }
+            }
+            
+            handleMouseUp(e) {
+                this.isDragging = false;
+                this.canvas.style.cursor = this.selectedBuildingType ? 'crosshair' : 'grab';
+            }
+            
+            handleCanvasClick(e) {
+                if (this.isDragging) return;
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Convert screen coordinates to world coordinates
+                const worldX = mouseX - this.camera.x;
+                const worldY = mouseY - this.camera.y;
+                
+                if (this.selectedBuildingType && this.phase === 'planning') {
+                    this.placeBuildingAt(worldX, worldY);
+                } else {
+                    this.selectBuildingAt(worldX, worldY);
+                }
+            }
+            
+            handleWheel(e) {
+                e.preventDefault();
+                // Simple zoom could be added here later
+            }
+            
+            selectIsland(islandIndex) {
+                if (islandIndex >= this.islands.length || !this.islands[islandIndex].unlocked) return;
+                
+                this.currentIsland = islandIndex;
+                this.generateResourceNodes();
+                this.centerCameraOnIsland();
+                this.updateUI();
+                this.render();
+                
+                // Update button states
+                document.querySelectorAll('.island-btn').forEach((btn, idx) => {
+                    btn.classList.toggle('active', idx === islandIndex);
+                });
+            }
+            
+            selectBuildingType(buildingType) {
+                // Clear previous selections
+                document.querySelectorAll('.building-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                if (this.selectedBuildingType === buildingType) {
+                    this.selectedBuildingType = null;
+                    this.canvas.style.cursor = 'grab';
+                } else {
+                    this.selectedBuildingType = buildingType;
+                    document.querySelector(`[data-building="${buildingType}"]`).classList.add('selected');
+                    this.canvas.style.cursor = 'crosshair';
+                }
+            }
+            
+            placeBuildingAt(worldX, worldY) {
+                const island = this.islands[this.currentIsland];
+                
+                // Check if position is within island bounds
+                if (worldX < 0 || worldX > island.size.width || worldY < 0 || worldY > island.size.height) {
+                    this.logEvent("Cannot build outside island boundaries!", 'warning');
+                    return;
+                }
+                
+                // Check building costs
+                const costs = {
+                    hut: { wood: 15, stone: 8 },
+                    storage: { wood: 20, stone: 15 },
+                    watchtower: { wood: 12, stone: 18 },
+                    workshop: { wood: 25, stone: 20 }
+                };
+                
+                const cost = costs[this.selectedBuildingType];
+                if (!this.canAfford(cost)) {
+                    this.logEvent(`Not enough resources for ${this.selectedBuildingType}!`, 'warning');
+                    return;
+                }
+                
+                // Check if too close to other buildings
+                const tooClose = this.buildings.some(building => 
+                    building.island === this.currentIsland &&
+                    Math.sqrt(Math.pow(building.x - worldX, 2) + Math.pow(building.y - worldY, 2)) < 60
+                );
+                
+                if (tooClose) {
+                    this.logEvent("Buildings must be placed further apart!", 'warning');
+                    return;
+                }
+                
+                // Deduct resources and place building
+                Object.keys(cost).forEach(resource => {
+                    this.resources[resource] -= cost[resource];
+                });
+                
+                const building = {
+                    type: this.selectedBuildingType,
+                    x: worldX,
+                    y: worldY,
+                    island: this.currentIsland,
+                    id: Date.now() + Math.random(),
+                    searchRadius: this.technologies.searchRadius
+                };
+                
+                this.buildings.push(building);
+                
+                // Apply building effects
+                if (this.selectedBuildingType === 'hut') {
+                    this.population.total += 5;
+                    this.population.healthy += 5;
+                    this.logEvent(`New hut built! +5 people (${this.population.total} total)`, 'success');
+                }
+                
+                this.selectedBuildingType = null;
+                this.canvas.style.cursor = 'grab';
+                document.querySelectorAll('.building-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                this.updateUI();
+                this.render();
+            }
+            
+            selectBuildingAt(worldX, worldY) {
+                // Find building at click position
+                const clickedBuilding = this.buildings.find(building => 
+                    building.island === this.currentIsland &&
+                    Math.sqrt(Math.pow(building.x - worldX, 2) + Math.pow(building.y - worldY, 2)) < 25
+                );
+                
+                if (clickedBuilding) {
+                    this.selectedBuilding = this.selectedBuilding === clickedBuilding ? null : clickedBuilding;
+                    this.render();
+                }
+            }
+            
+            canAfford(cost) {
+                return Object.keys(cost).every(resource => this.resources[resource] >= cost[resource]);
+            }
+            
+            getHutsOnCurrentIsland() {
+                return this.buildings.filter(building => 
+                    building.type === 'hut' && building.island === this.currentIsland
+                );
+            }
+            
+            getGatherableResources() {
+                const huts = this.getHutsOnCurrentIsland();
+                const gatherableNodes = [];
+                
+                huts.forEach(hut => {
+                    this.resourceNodes.forEach(node => {
+                        if (node.island === this.currentIsland && 
+                            !node.depleted &&
+                            Math.sqrt(Math.pow(node.x - hut.x, 2) + Math.pow(node.y - hut.y, 2)) <= hut.searchRadius) {
+                            if (!gatherableNodes.find(n => n.id === node.id)) {
+                                gatherableNodes.push(node);
+                            }
+                        }
+                    });
+                });
+                
+                return gatherableNodes;
+            }
+            
+            startGatheringPhase() {
+                const huts = this.getHutsOnCurrentIsland();
+                if (huts.length === 0) {
+                    this.logEvent("No huts on this island to send gatherers from!", 'warning');
+                    return;
+                }
+                
+                if (this.population.healthy === 0) {
+                    this.logEvent("No healthy people to send gathering!", 'danger');
+                    return;
+                }
+                
+                this.phase = 'gathering';
+                this.updatePhaseUI();
+                this.simulateGathering();
+            }
+            
+            simulateGathering() {
+                const gatherableNodes = this.getGatherableResources();
+                const huts = this.getHutsOnCurrentIsland();
+                const island = this.islands[this.currentIsland];
+                const weather = this.weatherEffects[this.weather];
+                
+                if (gatherableNodes.length === 0) {
+                    this.logEvent("No resources in range of huts on this island!", 'warning');
+                    this.endGatheringPhase();
+                    return;
+                }
+                
+                const gatheringTime = 3000 / this.gameSpeed;
+                let casualties = 0;
+                let resourcesGained = { food: 0, water: 0, wood: 0, stone: 0 };
+                
+                // Simulate gathering from each reachable node
+                gatherableNodes.forEach(node => {
+                    const baseDanger = Object.values(island.dangers).reduce((sum, danger) => sum + danger, 0);
+                    const totalDanger = baseDanger * weather.danger;
+                    const survivalChance = Math.max(0.3, 1 - totalDanger);
+                    
+                    if (Math.random() > survivalChance) {
+                        casualties++;
+                        node.discovered = true; // Still discover the node even if someone got hurt
+                    } else {
+                        // Successful gathering
+                        const gathered = Math.min(node.amount, Math.floor(Math.random() * 8) + 3);
+                        resourcesGained[node.type] += Math.floor(gathered * weather.gathering);
+                        node.amount -= gathered;
+                        node.discovered = true;
+                        
+                        if (node.amount <= 0) {
+                            node.depleted = true;
+                        }
+                    }
+                });
+                
+                // Apply results after delay
+                setTimeout(() => {
+                    this.applyGatheringResults(resourcesGained, casualties);
+                }, gatheringTime);
+                
+                this.logEvent(`Gathering expedition launched to ${gatherableNodes.length} resource sites...`, 'info');
+            }
+            
+            applyGatheringResults(resourcesGained, casualties) {
+                // Apply casualties
+                this.population.healthy -= casualties;
+                this.population.injured += Math.floor(casualties * 0.7);
+                this.population.total -= Math.floor(casualties * 0.3);
+                
+                // Apply resource gains
+                Object.keys(resourcesGained).forEach(resource => {
+                    this.resources[resource] += resourcesGained[resource];
+                });
+                
+                // Update morale
+                if (casualties > 0) {
+                    this.population.morale -= casualties * 8;
+                    this.logEvent(`${casualties} casualties during gathering expedition`, 'danger');
+                } else {
+                    this.population.morale += 3;
+                    this.logEvent("All gatherers returned safely!", 'success');
+                }
+                
+                this.population.morale = Math.max(0, Math.min(100, this.population.morale));
+                
+                // Log resource gains
+                const gains = Object.entries(resourcesGained)
+                    .filter(([_, amount]) => amount > 0)
+                    .map(([resource, amount]) => `${resource}: +${amount}`)
+                    .join(', ');
+                    
+                if (gains) {
+                    this.logEvent(`Resources gathered: ${gains}`, 'success');
+                }
+                
+                this.endGatheringPhase();
+                this.updateUI();
+                this.render();
+            }
+            
+            endGatheringPhase() {
+                this.phase = 'planning';
+                this.updatePhaseUI();
+                this.consumeResources();
+                this.healInjured();
+                this.processRandomEvents();
+            }
+            
+            consumeResources() {
+                const consumption = {
+                    food: this.population.total * 1,
+                    water: this.population.total * 1
+                };
+                
+                Object.keys(consumption).forEach(resource => {
+                    this.resources[resource] -= consumption[resource];
+                    if (this.resources[resource] < 0) {
+                        this.population.morale -= Math.abs(this.resources[resource]) * 2;
+                        this.logEvent(`Severe ${resource} shortage!`, 'danger');
+                        this.resources[resource] = 0;
+                    }
+                });
+            }
+            
+            healInjured() {
+                if (this.population.injured > 0) {
+                    const healRate = this.technologies.medicine ? 0.6 : 0.4;
+                    const healed = Math.floor(this.population.injured * healRate);
+                    this.population.injured -= healed;
+                    this.population.healthy += healed;
+                    
+                    if (healed > 0) {
+                        this.logEvent(`${healed} people recovered from injuries`, 'success');
+                    }
+                }
+            }
+            
+            processRandomEvents() {
+                // Weather changes
+                if (Math.random() < 0.25) {
+                    this.changeWeather();
+                }
+                
+                // Resource regeneration
+                if (Math.random() < 0.3) {
+                    this.regenerateResources();
+                }
+                
+                // Island unlocking
+                this.checkIslandUnlocks();
+            }
+            
+            regenerateResources() {
+                let regenerated = 0;
+                this.resourceNodes.forEach(node => {
+                    if (node.amount < node.maxAmount && !node.depleted && Math.random() < 0.4) {
+                        const regen = Math.floor(Math.random() * 5) + 1;
+                        node.amount = Math.min(node.maxAmount, node.amount + regen);
+                        regenerated++;
+                    }
+                });
+                
+                if (regenerated > 0) {
+                    this.logEvent(`${regenerated} resource deposits replenished naturally`, 'success');
+                }
+            }
+            
+            changeWeather() {
+                const weatherTypes = ['clear', 'rain', 'storm'];
+                const island = this.islands[this.currentIsland];
+                
+                if (island.terrain === 'mountains' && Math.random() < 0.15) {
+                    this.weather = 'volcano';
+                    this.logEvent("Volcanic activity detected! Gathering is extremely dangerous!", 'danger');
+                } else {
+                    this.weather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)];
+                    this.logEvent(`Weather changed to ${this.weather}`, 'info');
+                }
+                
+                this.updateUI();
+            }
+            
+            checkIslandUnlocks() {
+                // Unlock islands based on progression
+                if (!this.islands[1].unlocked && this.currentDay >= 7 && this.buildings.length >= 3) {
+                    this.islands[1].unlocked = true;
+                    document.querySelectorAll('.island-btn')[1].disabled = false;
+                    this.logEvent("New island discovered: Rocky Highlands!", 'success');
+                }
+                
+                if (!this.islands[2].unlocked && this.currentDay >= 15 && this.technologies.boats) {
+                    this.islands[2].unlocked = true;
+                    document.querySelectorAll('.island-btn')[2].disabled = false;
+                    this.logEvent("New island discovered: Frozen Tundra!", 'success');
+                }
+                
+                if (!this.islands[3].unlocked && this.currentDay >= 25 && this.technologies.armor && this.technologies.medicine) {
+                    this.islands[3].unlocked = true;
+                    document.querySelectorAll('.island-btn')[3].disabled = false;
+                    this.logEvent("New island discovered: Savage Jungle!", 'success');
+                }
+            }
+            
+            researchTech(techType) {
+                const costs = {
+                    tools: { wood: 15 },
+                    medicine: { wood: 10, stone: 10 },
+                    boats: { wood: 25 },
+                    armor: { stone: 30 }
+                };
+                
+                const cost = costs[techType];
+                if (!this.canAfford(cost)) {
+                    this.logEvent("Not enough resources for research!", 'warning');
+                    return;
+                }
+                
+                // Deduct resources
+                Object.keys(cost).forEach(resource => {
+                    this.resources[resource] -= cost[resource];
+                });
+                
+                this.technologies[techType] = true;
+                
+                // Apply tech effects
+                if (techType === 'tools') {
+                    this.technologies.searchRadius = 150; // Increase search radius
+                    // Update existing huts
+                    this.buildings.forEach(building => {
+                        if (building.type === 'hut') {
+                            building.searchRadius = 150;
+                        }
+                    });
+                }
+                
+                this.logEvent(`Research completed: ${techType}! ${techType === 'tools' ? 'Search radius increased!' : ''}`, 'success');
+                this.updateTechTree();
+                this.updateUI();
+                this.render();
+            }
+            
+            endDay() {
+                this.currentDay++;
+                this.phase = 'planning';
+                this.updatePhaseUI();
+                this.logEvent(`Day ${this.currentDay} begins`, 'info');
+                
+                // Regenerate some resources
+                if (Math.random() < 0.4) {
+                    this.regenerateResources();
+                }
+            }
+            
+            togglePause() {
+                this.logEvent("Game paused", 'info');
+            }
+            
+            changeSpeed() {
+                const speeds = [0.5, 1, 2, 4];
+                const currentIndex = speeds.indexOf(this.gameSpeed);
+                this.gameSpeed = speeds[(currentIndex + 1) % speeds.length];
+                document.getElementById('speedBtn').textContent = `Speed: ${this.gameSpeed}x`;
+            }
+            
+            updatePhaseUI() {
+                const phaseText = document.getElementById('phaseText');
+                const startBtn = document.getElementById('startDayBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+                const endBtn = document.getElementById('endDayBtn');
+                
+                switch (this.phase) {
+                    case 'planning':
+                        phaseText.textContent = `Day ${this.currentDay} - Planning`;
+                        phaseText.className = 'night-phase';
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
+                        endBtn.disabled = true;
+                        break;
+                    case 'gathering':
+                        phaseText.textContent = `Day ${this.currentDay} - Gathering`;
+                        phaseText.className = 'day-phase';
+                        startBtn.disabled = true;
+                        pauseBtn.disabled = false;
+                        endBtn.disabled = false;
+                        break;
+                }
+            }
+            
+            updateUI() {
+                // Update resources
+                document.getElementById('foodAmount').textContent = this.resources.food;
+                document.getElementById('waterAmount').textContent = this.resources.water;
+                document.getElementById('woodAmount').textContent = this.resources.wood;
+                document.getElementById('stoneAmount').textContent = this.resources.stone;
+                
+                // Update population
+                document.getElementById('totalPeople').textContent = this.population.total;
+                document.getElementById('healthyPeople').textContent = this.population.healthy;
+                document.getElementById('injuredPeople').textContent = this.population.injured;
+                
+                // Count huts on current island
+                const hutsOnIsland = this.buildings.filter(b => b.type === 'hut' && b.island === this.currentIsland).length;
+                document.getElementById('hutCount').textContent = hutsOnIsland;
+                
+                // Update morale
+                document.getElementById('moraleBar').style.width = this.population.morale + '%';
+                document.getElementById('moraleText').textContent = this.population.morale + '%';
+                
+                // Update weather
+                const weatherIcons = {
+                    clear: '☀️ Clear',
+                    rain: '🌧️ Rain', 
+                    storm: '⛈️ Storm',
+                    volcano: '🌋 Volcanic!'
+                };
+                document.getElementById('weatherIndicator').textContent = weatherIcons[this.weather];
+                
+                // Update island buttons
+                document.querySelectorAll('.island-btn').forEach((btn, index) => {
+                    const island = this.islands[index];
+                    btn.disabled = !island.unlocked;
+                    btn.textContent = island.name.split(' ')[0]; // First word only
+                });
+            }
+            
+            updateTechTree() {
+                document.querySelectorAll('.tech-item').forEach(item => {
+                    const tech = item.dataset.tech;
+                    if (this.technologies[tech]) {
+                        item.classList.remove('available');
+                        item.classList.add('researched');
+                        item.style.pointerEvents = 'none';
+                    }
+                });
+                
+                // Update availability based on prerequisites
+                if (this.technologies.tools && !this.technologies.medicine) {
+                    const medicineItem = document.querySelector('[data-tech="medicine"]');
+                    if (medicineItem && !medicineItem.classList.contains('researched')) {
+                        medicineItem.classList.add('available');
+                    }
+                }
+            }
+            
+            logEvent(message, type = 'info') {
+                const log = document.getElementById('eventLog');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.textContent = `[Day ${this.currentDay}] ${message}`;
+                
+                log.insertBefore(entry, log.firstChild);
+                
+                // Keep only last 12 entries
+                while (log.children.length > 12) {
+                    log.removeChild(log.lastChild);
+                }
+            }
+            
+            render() {
+                // Clear canvas
+                this.ctx.fillStyle = this.getIslandColor();
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Save context for camera transform
+                this.ctx.save();
+                this.ctx.translate(this.camera.x, this.camera.y);
+                
+                // Draw island
+                this.drawIsland();
+                
+                // Draw resource nodes
+                this.drawResourceNodes();
+                
+                // Draw buildings
+                this.drawBuildings();
+                
+                // Draw search radius for selected building
+                if (this.selectedBuilding) {
+                    this.drawSearchRadius(this.selectedBuilding);
+                }
+                
+                // Restore context
+                this.ctx.restore();
+                
+                // Draw UI overlay (not affected by camera)
+                this.drawUIOverlay();
+            }
+            
+            getIslandColor() {
+                return this.islands[this.currentIsland].color;
+            }
+            
+            drawIsland() {
+                const island = this.islands[this.currentIsland];
+                
+                // Draw island terrain
+                this.ctx.fillStyle = island.color;
+                this.ctx.fillRect(0, 0, island.size.width, island.size.height);
+                
+                // Draw island border
+                this.ctx.strokeStyle = '#8B7355';
+                this.ctx.lineWidth = 4;
+                this.ctx.strokeRect(0, 0, island.size.width, island.size.height);
+                
+                // Draw terrain features
+                this.drawTerrainFeatures(island);
+            }
+            
+            drawTerrainFeatures(island) {
+                this.ctx.globalAlpha = 0.3;
+                
+                switch (island.terrain) {
+                    case 'mountains':
+                        // Draw mountains
+                        this.ctx.fillStyle = '#5D4E75';
+                        for (let i = 0; i < 15; i++) {
+                            const x = Math.random() * island.size.width;
+                            const y = Math.random() * island.size.height;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(x, y);
+                            this.ctx.lineTo(x - 20, y + 40);
+                            this.ctx.lineTo(x + 20, y + 40);
+                            this.ctx.closePath();
+                            this.ctx.fill();
+                        }
+                        break;
+                        
+                    case 'frozen':
+                        // Draw ice patches
+                        this.ctx.fillStyle = '#E0F6FF';
+                        for (let i = 0; i < 25; i++) {
+                            const x = Math.random() * island.size.width;
+                            const y = Math.random() * island.size.height;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x, y, Math.random() * 30 + 15, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                        break;
+                        
+                    case 'jungle':
+                        // Draw dense trees
+                        this.ctx.fillStyle = '#1a3d0a';
+                        for (let i = 0; i < 60; i++) {
+                            const x = Math.random() * island.size.width;
+                            const y = Math.random() * island.size.height;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x, y, Math.random() * 12 + 8, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                        break;
+                        
+                    case 'grassland':
+                    default:
+                        // Draw grass patches
+                        this.ctx.fillStyle = '#2d5016';
+                        for (let i = 0; i < 30; i++) {
+                            const x = Math.random() * island.size.width;
+                            const y = Math.random() * island.size.height;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x, y, Math.random() * 15 + 10, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                        break;
+                }
+                
+                this.ctx.globalAlpha = 1.0;
+            }
+            
+            drawResourceNodes() {
+                const resourceIcons = {
+                    food: '🍎',
+                    water: '💧', 
+                    wood: '🪵',
+                    stone: '🪨'
+                };
+                
+                const resourceColors = {
+                    food: '#ff6b6b',
+                    water: '#4ecdc4',
+                    wood: '#8b4513', 
+                    stone: '#708090'
+                };
+                
+                this.resourceNodes.forEach(node => {
+                    if (node.island !== this.currentIsland) return;
+                    
+                    // Skip completely depleted nodes
+                    if (node.depleted && node.amount <= 0) return;
+                    
+                    const alpha = node.discovered ? 1.0 : 0.6;
+                    this.ctx.globalAlpha = alpha;
+                    
+                    // Draw resource node background
+                    this.ctx.fillStyle = resourceColors[node.type];
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, 16, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Draw resource icon
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = '20px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(resourceIcons[node.type], node.x, node.y + 7);
+                    
+                    // Draw amount if discovered
+                    if (node.discovered && node.amount > 0) {
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.font = '10px Arial';
+                        this.ctx.fillText(node.amount.toString(), node.x, node.y + 25);
+                    }
+                    
+                    this.ctx.globalAlpha = 1.0;
+                });
+            }
+            
+            drawBuildings() {
+                const buildingIcons = {
+                    hut: '🏠',
+                    storage: '📦',
+                    watchtower: '🗼',
+                    workshop: '🔨'
+                };
+                
+                this.buildings.forEach(building => {
+                    if (building.island !== this.currentIsland) return;
+                    
+                    // Draw building base
+                    this.ctx.fillStyle = '#8B4513';
+                    this.ctx.fillRect(building.x - 20, building.y - 20, 40, 40);
+                    
+                    // Draw building icon
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = '24px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(buildingIcons[building.type] || '?', building.x, building.y + 8);
+                    
+                    // Highlight selected building
+                    if (this.selectedBuilding === building) {
+                        this.ctx.strokeStyle = '#FFD700';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.strokeRect(building.x - 22, building.y - 22, 44, 44);
+                    }
+                });
+            }
+            
+            drawSearchRadius(building) {
+                this.ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                this.ctx.setLineDash([5, 5]);
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(building.x, building.y, building.searchRadius, 0, Math.PI * 2);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+            }
+            
+            drawUIOverlay() {
+                // Draw island name
+                const island = this.islands[this.currentIsland];
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(10, this.canvas.height - 50, 250, 30);
+                
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '16px Arial';
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(`${island.name} (Difficulty: ${island.difficulty})`, 20, this.canvas.height - 30);
+                
+                // Draw building placement preview
+                if (this.selectedBuildingType) {
+                    this.ctx.fillStyle = 'rgba(74, 158, 255, 0.5)';
+                    this.ctx.fillRect(10, 10, 200, 25);
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.fillText(`Click to place: ${this.selectedBuildingType}`, 15, 28);
+                }
+            }
+        
+        
+      
+        //  //8) * Math.PI * 2;
+        //                     const x = centerX + Math.cos(angle) * radius * 0.7;
+        //                     const y = centerY + Math.sin(angle) * radius * 0.7;
+        //                     this.ctx.beginPath();
+        //                     this.ctx.arc(x, y, 15, 0, Math.PI * 2);
+        //                     this.ctx.fill();
+        //                 }
+        //                 break;
+                        
+        //             case 'jungle':
+        //                 // Draw dense vegetation
+        //                 this.ctx.fillStyle = '#228b22';
+        //                 for (let i = 0; i < 20; i++) {
+        //                     const x = centerX + (Math.random() - 0.5) * radius * 1.5;
+        //                     const y = centerY + (Math.random() - 0.5) * radius * 1.5;
+        //                     const treeRadius = Math.random() * 8 + 5;
+        //                     this.ctx.beginPath();
+        //                     this.ctx.arc(x, y, treeRadius, 0, Math.PI * 2);
+        //                     this.ctx.fill();
+        //                 }
+        //                 break;
+        //         }
+        //     }
+            
+            drawResourceSpawns() {
+                const colors = {
+                    food: '#ff6b6b',
+                    water: '#4ecdc4',
+                    wood: '#8b4513',
+                    stone: '#708090'
+                };
+                
+                this.resourceSpawns.forEach(spawn => {
+                    if (spawn.discovered || this.phase === 'planning') {
+                        this.ctx.fillStyle = colors[spawn.type];
+                        this.ctx.globalAlpha = spawn.discovered ? 1.0 : 0.5;
+                        this.ctx.beginPath();
+                        this.ctx.arc(spawn.x, spawn.y, 8, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.globalAlpha = 1.0;
+                        
+                        // Draw resource amount
+                        if (spawn.discovered) {
+                            this.ctx.fillStyle = 'white';
+                            this.ctx.font = '12px Arial';
+                            this.ctx.textAlign = 'center';
+                            this.ctx.fillText(spawn.amount.toString(), spawn.x, spawn.y + 4);
+                        }
+                    }
+                });
+            }
+            
+            drawBuildings() {
+                // Simple building representations
+                const buildings = [
+                    {type: 'hut', x: 100, y: 100, count: this.buildings.huts},
+                    {type: 'storage', x: 200, y: 100, count: this.buildings.storage},
+                    {type: 'bridge', x: 300, y: 100, count: this.buildings.bridges},
+                    {type: 'wall', x: 400, y: 100, count: this.buildings.walls}
+                ];
+                
+                buildings.forEach(building => {
+                    if (building.count > 0) {
+                        this.ctx.fillStyle = '#8b4513';
+                        this.ctx.fillRect(building.x - 15, building.y - 15, 30, 30);
+                        
+                        // Building icon
+                        this.ctx.fillStyle = 'white';
+                        this.ctx.font = '16px Arial';
+                        this.ctx.textAlign = 'center';
+                        const icons = {hut: '🏠', storage: '📦', bridge: '🌉', wall: '🧱'};
+                        this.ctx.fillText(icons[building.type] || '?', building.x, building.y + 5);
+                        
+                        // Count
+                        if (building.count > 1) {
+                            this.ctx.fillStyle = '#ffd700';
+                            this.ctx.font = '12px Arial';
+                            this.ctx.fillText(building.count.toString(), building.x + 20, building.y - 10);
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new IslandSurvivalGame();
+        });
+    </script>
+</body>
+</html>
